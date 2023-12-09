@@ -31,7 +31,7 @@ type stress struct {
 	ConnSendNum []int
 }
 
-func NewStress(num, conn int, ns string, duration time.Duration) *stress {
+func NewStress(num, conn, an int, ns string, duration time.Duration) *stress {
 	if conn < 1 {
 		log.Fatal("connection num is less than one")
 	}
@@ -39,6 +39,7 @@ func NewStress(num, conn int, ns string, duration time.Duration) *stress {
 		Config: defs.Config{
 			Conn:          conn,
 			Num:           num,
+			Anntation:     an,
 			Duration:      duration,
 			Action:        "PUT",
 			LabelSelector: "env=test",
@@ -54,7 +55,6 @@ func (s *stress) initStress() {
 	s.ConnRecv = make([]int, s.Conn)
 	s.ConnSendNum = make([]int, s.Conn)
 	s.clientSet = client.ClientSet(s.Conn)
-
 }
 
 // has probelm :
@@ -147,10 +147,10 @@ func (s *stress) getResList() []string {
 	return res
 }
 func (s *stress) put(id int, resName string, client *http.Client) {
-	data, request := util.GetPutDataAndUrl(s.Res, s.Namespace, resName, 10)
+	data, request := util.GetPutDataAndUrl(s.Res, s.Namespace, resName, s.Anntation)
 	req, err := http.NewRequest("PUT", request+"/"+resName, bytes.NewBuffer(data))
 	log.Println("req:", request+"/"+resName)
-	log.Println("data", string(data))
+	// log.Println("data", string(data))
 	if err != nil {
 		log.Fatal("new http request err", err)
 	}
@@ -171,9 +171,9 @@ func (s *stress) put(id int, resName string, client *http.Client) {
 		log.Println("parse to reponse out err", err)
 	}
 	s.ConnRecv[id] += len(repout)
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("read response has err", err)
-	}
-	log.Println("body", string(body))
+	// body, err := io.ReadAll(resp.Body)
+	// if err != nil {
+	// 	fmt.Println("read response has err", err)
+	// }
+	// log.Println("body", string(body))
 }

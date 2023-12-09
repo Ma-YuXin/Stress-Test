@@ -3,7 +3,6 @@ package post
 import (
 	"bytes"
 	"context"
-	"io"
 	"log"
 	"math"
 	"net/http"
@@ -60,8 +59,8 @@ func (s *stress) Run() {
 	start := time.Now()
 	s.run()
 	ioinfo.WriteInfo(start, s)
-	time.Sleep(time.Second * 3)
-	s.clearIfAllowed()
+	// time.Sleep(time.Second * 3)
+	// s.clearIfAllowed()
 }
 func (s *stress) Info() (string, string, string, int, int, time.Duration, []int, []int, []int) {
 	return s.Res, s.Namespace, s.Action, s.Conn, s.Anntation, s.Duration, s.ConnSend, s.ConnRecv, s.ConnSendNum
@@ -73,7 +72,7 @@ func (s *stress) initStress() {
 	s.ConnSendNum = make([]int, s.Conn)
 }
 
-func (s *stress) clearIfAllowed() {
+func (s *stress) ClearIfAllowed() {
 	if s.Res == "ns" {
 		delete.DeleteNameSpace(s.Res, s.Namespace, s.LabelSelector, s.Auth)
 		// time.Sleep(time.Second * 5)
@@ -126,7 +125,7 @@ func (s *stress) start(ctx context.Context, wg *sync.WaitGroup, num, id int, htt
 func (s *stress) post(httpClient *http.Client, seq, id int) {
 	// data := []byte(``)
 	data, url := util.GetPostDataAndUrl(s.Res, s.Namespace, s.Anntation, seq, id)
-	log.Println("data:", string(data))
+	// log.Println("data:", string(data))
 	log.Println("url :", url)
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(data))
 	if err != nil {
@@ -152,9 +151,9 @@ func (s *stress) post(httpClient *http.Client, seq, id int) {
 	s.ConnRecv[id] += len(respo)
 	// fmt.Println("response:", len(respo))
 	// fmt.Println()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Println("err:", err)
-	}
-	log.Println("body:", string(body))
+	// body, err := io.ReadAll(resp.Body)
+	// if err != nil {
+	// 	log.Println("err:", err)
+	// }
+	// log.Println("body:", string(body))
 }

@@ -1,0 +1,18 @@
+2023-12-07 12:11:55.421645734 +0800 CST m=+60.082723273
+Running 1m0s myx-test @ https://192.168.12.127:6443/api/v1/nodes
+3 connections
+Requests/bytes (per Connection):  [2888776 3243130 5921806]
+Response/bytes (per Connection):  [4138414 4646050 8483434]
+Requests Number (per Connection):  [481 540 986]
+Requests/sec:  196.18671875 KB
+Transfer/sec:  477.23974609375 KB
+
+2023-12-07 12:15:15.612709966 +0800 CST m=+260.273787501
+Running 1m0s myx-test @ https://192.168.12.127:6443/api/v1/nodes
+6 connections
+Requests/bytes (per Connection):  [2450338 2444332 4492378 5591476 3014902 3014902]
+Response/bytes (per Connection):  [3139788 3131184 4695968 8010214 4319098 4319098]
+Requests Number (per Connection):  [408 407 748 931 502 502]
+Requests/sec:  341.932421875 KB
+Transfer/sec:  791.4010091145833 KB
+

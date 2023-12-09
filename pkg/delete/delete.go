@@ -11,6 +11,7 @@ import (
 	"stressTest/defs"
 	"stressTest/util"
 	"strings"
+	"time"
 
 	v1 "k8s.io/api/core/v1"
 )
@@ -46,22 +47,25 @@ func ClearAll(ns, labelSelector, auth string) {
 }
 func ClearPost(res, ns, labelSelector, auth string) {
 	_, _, request := util.GetBasic(res, ns)
-	req, err := http.NewRequest("DELETE", request+"?labelSelector="+labelSelector, nil)
+	// req, err := http.NewRequest("DELETE", request+"?labelSelector="+labelSelector, nil)
+	req, err := http.NewRequest("DELETE", request, nil)
+	log.Println("DELETE", request, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 	req.Header.Set("Authorization", auth)
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
 	client := &http.Client{
-		Transport: tr,
+		Timeout: time.Minute * 30,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
 	}
-	resp, err := client.Do(req)
+	_, err = client.Do(req)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("req err : ", err)
 	}
-	defer resp.Body.Close()
+	// defer resp.Body.Close()
+	// log.Println("delete post : ", resp.StatusCode, resp.Status)
 	// body, err := io.ReadAll(resp.Body)
 	// if err != nil {
 	// 	log.Fatal(err)
@@ -78,6 +82,7 @@ func DeleteNameSpace(res, ns, labelSelector, auth string) {
 	req.Header.Set("Authorization", auth)
 
 	client := &http.Client{
+		Timeout: time.Minute * 30,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: true,

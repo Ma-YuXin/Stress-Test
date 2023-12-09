@@ -1,0 +1,44 @@
+2026856
+2023/12/05 20:35:45 start conn :  3 , annotati
+2023/12/05 20:54:23 start conn :  6 , annotation :  0
+2023/12/05 21:14:37 start conn :  9 , annotation :  0
+2023/12/05 21:36:11 start conn :  15 , annotation :  0
+2023/12/05 21:59:47 start conn :  30 , annotation :  0
+2023/12/05 22:23:58 start conn :  60 , annotation :  0
+2023/12/05 22:48:37 start conn :  90 , annotation :  0
+2023/12/05 23:23:06 start conn :  150 , annotation :  0
+2023/12/05 23:58:57 start conn :  300 , annotation :  0
+2023/12/06 00:35:48 start conn :  3 , annotation :  100
+2023/12/06 00:55:18 start conn :  6 , annotation :  100
+2023/12/06 01:14:12 start conn :  9 , annotation :  100
+2023/12/06 01:34:33 start conn :  15 , annotation :  100
+2023/12/06 01:56:31 start conn :  30 , annotation :  100
+2023/12/06 02:20:29 start conn :  60 , annotation :  100
+2023/12/06 02:44:32 start conn :  90 , annotation :  100
+2023/12/06 03:19:26 start conn :  150 , annotation :  100
+2023/12/06 03:54:10 start conn :  300 , annotation :  100
+2023/12/06 04:28:54 start conn :  3 , annotation :  200
+2023/12/06 04:47:18 start conn :  6 , annotation :  200
+2023/12/06 05:06:50 start conn :  9 , annotation :  200
+2023/12/06 05:27:22 start conn :  15 , annotation :  200
+2023/12/06 05:49:27 start conn :  30 , annotation :  200
+2023/12/06 06:13:11 start conn :  60 , annotation :  200
+2023/12/06 06:37:25 start conn :  90 , annotation :  200
+2023/12/06 07:12:22 start conn :  150 , annotation :  200
+2023/12/06 07:46:58 start conn :  300 , annotation :  200
+2023/12/06 08:21:36 start conn :  3 , annotation :  300
+2023/12/06 08:39:58 start conn :  6 , annotation :  300
+2023/12/06 08:59:32 start conn :  9 , annotation :  300
+2023/12/06 09:19:51 start conn :  15 , annotation :  300
+2023/12/06 09:41:56 start conn :  30 , annotation :  300
+panic: Get "https://192.168.12.127:6443/api/v1/namespaces?labelSelector=env=test": EOF
+
+goroutine 1 [running]:
+stressTest/pkg/delete.DeleteNameSpace({0xb2cd25?, 0x4698e5?}, {0xb2e42a?, 0xc00012c0c0?}, {0xb2e432, 0x8}, {0xb8ac59, 0x365})
+	/root/go/src/stressTest/pkg/delete/delete.go:89 +0x625
+main.clearSingle({0xb2cd25?, 0x0?})
+	/root/go/src/stressTest/main.go:50 +0x4a
+main.postTest({0xb2cd25, 0x2})
+	/root/go/src/stressTest/main.go:37 +0x369
+main.main()
+	/root/go/src/stressTest/main.go:20 +0x65
