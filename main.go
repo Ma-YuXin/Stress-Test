@@ -7,6 +7,7 @@ import (
 	"stressTest/pkg/patch"
 	"stressTest/pkg/post"
 	"stressTest/pkg/put"
+	"stressTest/pkg/stress"
 	"time"
 )
 
@@ -22,18 +23,37 @@ func main() {
 	// 	clearSingle(v)
 	// 	time.Sleep(time.Minute)
 	// }
-
-	// concurrency_list := []int{3, 6, 9, 15, 30, 60, 90, 150, 300}
-	concurrency_list := []int{9, 15, 30, 60, 90, 150, 300}
-	for _, cn := range concurrency_list {
-		res := "no"
-		s := post.NewStress(-1, cn, 200, "myx-test", time.Minute)
-		s.Res = res
-		s.Run()
-		time.Sleep(time.Second * 40)
-		s.ClearIfAllowed()
-		time.Sleep(time.Second * 40)
+	// rps()
+	postRps()
+}
+func rps() {
+	actionRatio := map[string]float64{
+		"POST":   0.25,
+		"PATCH":  0.25,
+		"DELETE": 0.25,
+		"PUT":    0.25,
 	}
+	// "ns", "no", "pv",
+	// 	"cm", "ep", "limits", "pvc", "po", "podtemplate",
+	// 	"rc", "quota", "secret", "sa", "svc",
+	// 	"controllerrevision", "ds", "deploy", "rs", "sts",
+	// 	"cj", "job"
+	resRatio := map[string]map[string]float64{
+		"POST":   {"pv": 0.1, "cm": 0.1, "ep": 0.1, "limits": 0.1, "pvc": 0.1, "podtemplate": 0.1, "rc": 0.1, "quota": 0.1, "secret": 0.1},
+		"PATCH":  {"pv": 0.1, "cm": 0.1, "ep": 0.1, "limits": 0.1, "pvc": 0.1, "podtemplate": 0.1, "rc": 0.1, "quota": 0.1, "secret": 0.1},
+		"DELETE": {"pv": 0.1, "cm": 0.1, "ep": 0.1, "limits": 0.1, "pvc": 0.1, "podtemplate": 0.1, "rc": 0.1, "quota": 0.1, "secret": 0.1},
+		"PUT":    {"pv": 0.1, "cm": 0.1, "ep": 0.1, "limits": 0.1, "pvc": 0.1, "podtemplate": 0.1, "rc": 0.1, "quota": 0.1, "secret": 0.1},
+	}
+	stress.RpsWithPercent(100, actionRatio, resRatio, time.Second)
+}
+func postRps() {
+	actionRatio := map[string]float64{
+		"POST": 1.0,
+	}
+	resRatio := map[string]map[string]float64{
+		"POST": {"cm": 1.0},
+	}
+	stress.RpsWithPercent(100, actionRatio, resRatio, time.Second*30)
 }
 func postTest(res string) {
 	concurrency_list := []int{3, 6, 9, 15, 30, 60, 90, 150, 300}
@@ -86,7 +106,6 @@ func putTest(res string) {
 			time.Sleep(time.Second * 40)
 		}
 	}
-
 }
 func deleteTest(res string) {
 	s := delete.NewStress(10, "myx-test", time.Second*100)

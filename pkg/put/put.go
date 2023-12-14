@@ -88,6 +88,7 @@ func (s *stress) start(ctx context.Context, wg *sync.WaitGroup, num, id int, res
 
 func (s *stress) run() {
 	s.initStress()
+	defer client.PutClientSet(s.clientSet)
 	list := s.getResList()
 	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(s.Duration))
 	defer cancel()

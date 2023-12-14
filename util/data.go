@@ -1,12 +1,55 @@
 package util
 
 import (
+	"bytes"
+	"crypto/tls"
+	"encoding/json"
+	"fmt"
+	"io"
 	"log"
+	"net/http"
 	"strconv"
+	"stressTest/config"
 	"stressTest/defs"
 	"strings"
+
+	v1 "k8s.io/api/core/v1"
 )
 
+func GetResList(res string) []string {
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+	_, _, request := GetBasic(res, config.GetDefultNameSpace())
+	req, err := http.NewRequest("GET", request+"?labelSelector="+config.GetDefaultLabelSelector(), nil)
+	if err != nil {
+		log.Fatal("new http request err", err)
+	}
+	req.Header.Set("Authorization", config.GetDefultAuthor())
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Panicln("do request has err", err)
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("read response has err", err)
+	}
+	// log.Println("body", string(body))
+	nslist := v1.NamespaceList{}
+	err = json.Unmarshal(body, &nslist)
+	if err != nil {
+		log.Println("unmarshal err", err)
+	}
+	resu := []string{}
+	for _, item := range nslist.Items {
+		resu = append(resu, item.Name)
+	}
+	return resu
+}
 func GetBasic(res, namespace string) (string, string, string) {
 	kind := Res2kind(res)
 	if kind == "" {
@@ -29,136 +72,654 @@ func GetBasic(res, namespace string) (string, string, string) {
 func GetPostDataAndUrl(res, namespace string, antNum, num, id int) (data []byte, request string) {
 	kind, api_version, request := GetBasic(res, namespace)
 	// fmt.Println(kind, api_version, request)
-	body := ""
+	body := bytes.Buffer{}
 	annotation := GetAnnotations(antNum)
 	if kind == "Namespace" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "test-` + strings.ToLower(kind) + `-` + strconv.Itoa(num) + `-` + strconv.Itoa(id) + `", "labels": {"env":"test"}` + annotation + `}}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "test-`)
+		body.WriteString(strings.ToLower(kind))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(num))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(id))
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}}`)
 	} else if kind == "Node" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "test-` + strings.ToLower(kind) + `-` + strconv.Itoa(num) + `-` + strconv.Itoa(id) + `", "labels": {"env":"test"}` + annotation + `}, "spec": {"unschedulable": true}}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "test-`)
+		body.WriteString(strings.ToLower(kind))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(num))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(id))
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}, "spec": {"unschedulable": true}}`)
 	} else if kind == "PersistentVolume" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "test-` + strings.ToLower(kind) + `-` + strconv.Itoa(num) + `-` + strconv.Itoa(id) + `", "labels": {"env":"test"}` + annotation + `}, "spec": {"accessModes": ["ReadWriteOnce"], "capacity": {"storage": "100Ki"}, "hostPath": {"path": "/root/data"}}}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "test-`)
+		body.WriteString(strings.ToLower(kind))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(num))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(id))
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}, "spec": {"accessModes": ["ReadWriteOnce"], "capacity": {"storage": "100Ki"}, "hostPath": {"path": "/root/data"}}}`)
 	} else if kind == "ConfigMap" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "test-` + strings.ToLower(kind) + `-` + strconv.Itoa(num) + `-` + strconv.Itoa(id) + `", "namespace": "` + namespace + `", "labels": {"env":"test"}` + annotation + `}, "data": {"test-data":""}}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "test-`)
+		body.WriteString(strings.ToLower(kind))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(num))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(id))
+		body.WriteString(`", "namespace": "`)
+		body.WriteString(namespace)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}, "data": {"test-data":""}}`)
 	} else if kind == "Endpoints" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "test-` + strings.ToLower(kind) + `-` + strconv.Itoa(num) + `-` + strconv.Itoa(id) + `", "namespace": "` + namespace + `", "labels": {"env":"test"}` + annotation + `}}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "test-`)
+		body.WriteString(strings.ToLower(kind))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(num))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(id))
+		body.WriteString(`", "namespace": "`)
+		body.WriteString(namespace)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}}`)
 	} else if kind == "LimitRange" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "test-` + strings.ToLower(kind) + `-` + strconv.Itoa(num) + `-` + strconv.Itoa(id) + `", "namespace": "` + namespace + `", "labels": {"env":"test"}` + annotation + `}, "spec": {"limits": [{"type":"Container"}]}}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "test-`)
+		body.WriteString(strings.ToLower(kind))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(num))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(id))
+		body.WriteString(`", "namespace": "`)
+		body.WriteString(namespace)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}, "spec": {"limits": [{"type":"Container"}]}}`)
 	} else if kind == "PersistentVolumeClaim" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "test-` + strings.ToLower(kind) + `-` + strconv.Itoa(num) + `-` + strconv.Itoa(id) + `", "namespace": "` + namespace + `", "labels": {"env":"test"}` + annotation + `}, "spec": {"accessModes": ["ReadWriteOnce"], "resources": {"requests": {"storage": "200Ki"}}}}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "test-`)
+		body.WriteString(strings.ToLower(kind))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(num))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(id))
+		body.WriteString(`", "namespace": "`)
+		body.WriteString(namespace)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}, "spec": {"accessModes": ["ReadWriteOnce"], "resources": {"requests": {"storage": "200Ki"}}}}`)
 	} else if kind == "Pod" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "test-` + strings.ToLower(kind) + `-` + strconv.Itoa(num) + `-` + strconv.Itoa(id) + `", "namespace": "` + namespace + `", "labels": {"env":"test"}` + annotation + `}, "spec": {"containers": [{"name": "test", "image": "nginx:1.17"}]}}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "test-`)
+		body.WriteString(strings.ToLower(kind))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(num))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(id))
+		body.WriteString(`", "namespace": "`)
+		body.WriteString(namespace)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}, "spec": {"containers": [{"name": "test", "image": "nginx:1.17"}]}}`)
 	} else if kind == "PodTemplate" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "test-` + strings.ToLower(kind) + `-` + strconv.Itoa(num) + `-` + strconv.Itoa(id) + `", "namespace": "` + namespace + `", "labels": {"env":"test"}` + annotation + `}, "template": {"metadata": {"name": "pod-template"}, "spec": {"containers": [{"name": "test", "image": "nginx:1.17"}]}}}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "test-`)
+		body.WriteString(strings.ToLower(kind))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(num))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(id))
+		body.WriteString(`", "namespace": "`)
+		body.WriteString(namespace)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}, "template": {"metadata": {"name": "pod-template"}, "spec": {"containers": [{"name": "test", "image": "nginx:1.17"}]}}}`)
 	} else if kind == "ReplicationController" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "test-` + strings.ToLower(kind) + `-` + strconv.Itoa(num) + `-` + strconv.Itoa(id) + `", "namespace": "` + namespace + `", "labels": {"env":"test"}` + annotation + `}, "spec": {"replicas": 0, "selector": {"app": "test"}, "template": {"metadata": {"name": "test", "labels": {"app": "test"}}, "spec": {"containers": [{"name": "test", "image": "nginx:1.17"}]}}}}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "test-`)
+		body.WriteString(strings.ToLower(kind))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(num))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(id))
+		body.WriteString(`", "namespace": "`)
+		body.WriteString(namespace)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}, "spec": {"replicas": 0, "selector": {"app": "test"}, "template": {"metadata": {"name": "test", "labels": {"app": "test"}}, "spec": {"containers": [{"name": "test", "image": "nginx:1.17"}]}}}}`)
 	} else if kind == "ResourceQuota" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "test-` + strings.ToLower(kind) + `-` + strconv.Itoa(num) + `-` + strconv.Itoa(id) + `", "namespace": "` + namespace + `", "labels": {"env":"test"}` + annotation + `}}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "test-`)
+		body.WriteString(strings.ToLower(kind))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(num))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(id))
+		body.WriteString(`", "namespace": "`)
+		body.WriteString(namespace)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}}`)
 	} else if kind == "Secret" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "test-` + strings.ToLower(kind) + `-` + strconv.Itoa(num) + `-` + strconv.Itoa(id) + `", "namespace": "` + namespace + `", "labels": {"env":"test"}` + annotation + `}, "data": {"test-secret":""}, "type": "Opaque"}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "test-`)
+		body.WriteString(strings.ToLower(kind))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(num))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(id))
+		body.WriteString(`", "namespace": "`)
+		body.WriteString(namespace)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}, "data": {"test-secret":""}, "type": "Opaque"}`)
 	} else if kind == "ServiceAccount" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "test-` + strings.ToLower(kind) + `-` + strconv.Itoa(num) + `-` + strconv.Itoa(id) + `", "namespace": "` + namespace + `", "labels": {"env":"test"}` + annotation + `}}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "test-`)
+		body.WriteString(strings.ToLower(kind))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(num))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(id))
+		body.WriteString(`", "namespace": "`)
+		body.WriteString(namespace)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}}`)
 	} else if kind == "Service" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "test-` + strings.ToLower(kind) + `-` + strconv.Itoa(num) + `-` + strconv.Itoa(id) + `", "namespace": "` + namespace + `", "labels": {"env":"test"}` + annotation + `},"spec": {"ports": [{"port": 80}]}}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "test-`)
+		body.WriteString(strings.ToLower(kind))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(num))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(id))
+		body.WriteString(`", "namespace": "`)
+		body.WriteString(namespace)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`},"spec": {"ports": [{"port": 80}]}}`)
 	} else if kind == "ControllerRevision" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "test-` + strings.ToLower(kind) + `-` + strconv.Itoa(num) + `-` + strconv.Itoa(id) + `", "namespace": "` + namespace + `", "labels": {"env":"test"}` + annotation + `}, "revision": 0, "data": ""}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "test-`)
+		body.WriteString(strings.ToLower(kind))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(num))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(id))
+		body.WriteString(`", "namespace": "`)
+		body.WriteString(namespace)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}, "revision": 0, "data": ""}`)
 	} else if kind == "DaemonSet" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "test-` + strings.ToLower(kind) + `-` + strconv.Itoa(num) + `-` + strconv.Itoa(id) + `", "namespace": "` + namespace + `", "labels": {"env":"test"}` + annotation + `}, "spec": {"selector": {"matchLabels": {"app": "test"}}, "template": {"metadata": {"name": "test", "labels": {"app": "test"}}, "spec": {"containers": [{"name": "test", "image": "nginx:1.17"}]}}}}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "test-`)
+		body.WriteString(strings.ToLower(kind))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(num))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(id))
+		body.WriteString(`", "namespace": "`)
+		body.WriteString(namespace)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}, "spec": {"selector": {"matchLabels": {"app": "test"}}, "template": {"metadata": {"name": "test", "labels": {"app": "test"}}, "spec": {"containers": [{"name": "test", "image": "nginx:1.17"}]}}}}`)
 	} else if kind == "Deployment" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "test-` + strings.ToLower(kind) + `-` + strconv.Itoa(num) + `-` + strconv.Itoa(id) + `", "namespace": "` + namespace + `", "labels": {"env":"test"}` + annotation + `}, "spec": {"replicas": 0, "selector": {"matchLabels": {"app": "test"}}, "template":{"metadata": {"name": "test", "labels": {"app": "test"}}, "spec": {"containers": [{"name": "test","image": "nginx:1.17"}]}}}}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "test-`)
+		body.WriteString(strings.ToLower(kind))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(num))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(id))
+		body.WriteString(`", "namespace": "`)
+		body.WriteString(namespace)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}, "spec": {"replicas": 0, "selector": {"matchLabels": {"app": "test"}}, "template":{"metadata": {"name": "test", "labels": {"app": "test"}}, "spec": {"containers": [{"name": "test","image": "nginx:1.17"}]}}}}`)
 	} else if kind == "ReplicaSet" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "test-` + strings.ToLower(kind) + `-` + strconv.Itoa(num) + `-` + strconv.Itoa(id) + `", "namespace": "` + namespace + `", "labels": {"env":"test"}` + annotation + `}, "spec": {"replicas": 0, "selector": {"matchLabels": {"app": "test"}}, "template":{"metadata": {"name": "test", "labels": {"app": "test"}}, "spec": {"containers": [{"name": "test","image": "nginx:1.17"}]}}}}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "test-`)
+		body.WriteString(strings.ToLower(kind))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(num))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(id))
+		body.WriteString(`", "namespace": "`)
+		body.WriteString(namespace)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}, "spec": {"replicas": 0, "selector": {"matchLabels": {"app": "test"}}, "template":{"metadata": {"name": "test", "labels": {"app": "test"}}, "spec": {"containers": [{"name": "test","image": "nginx:1.17"}]}}}}`)
 	} else if kind == "StatefulSet" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "test-` + strings.ToLower(kind) + `-` + strconv.Itoa(num) + `-` + strconv.Itoa(id) + `", "namespace": "` + namespace + `", "labels": {"env":"test"}` + annotation + `}, "spec": {"replicas": 0, "selector": {"matchLabels": {"app": "test"}}, "serviceName": "", "template": {"metadata": {"name": "test", "labels": {"app": "test"}}, "spec": {"containers": [{"name": "test", "image": "nginx:1.17"}]}}}}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "test-`)
+		body.WriteString(strings.ToLower(kind))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(num))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(id))
+		body.WriteString(`", "namespace": "`)
+		body.WriteString(namespace)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}, "spec": {"replicas": 0, "selector": {"matchLabels": {"app": "test"}}, "serviceName": "", "template": {"metadata": {"name": "test", "labels": {"app": "test"}}, "spec": {"containers": [{"name": "test", "image": "nginx:1.17"}]}}}}`)
 	} else if kind == "CronJob" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "test-` + strings.ToLower(kind) + `-` + strconv.Itoa(num) + `-` + strconv.Itoa(id) + `", "namespace": "` + namespace + `", "labels": {"env":"test"}` + annotation + `}, "spec": {"schedule": "0 */1 * * *", "suspend": true, "jobTemplate": {"spec": {"template": {"spec": {"restartPolicy": "Never", "containers": [{"name": "test", "image": "busybox:1.30", "command": ["bin/sh", "-c", "sleep 10"]}]}}}}}}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "test-`)
+		body.WriteString(strings.ToLower(kind))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(num))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(id))
+		body.WriteString(`", "namespace": "`)
+		body.WriteString(namespace)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}, "spec": {"schedule": "0 */1 * * *", "suspend": true, "jobTemplate": {"spec": {"template": {"spec": {"restartPolicy": "Never", "containers": [{"name": "test", "image": "busybox:1.30", "command": ["bin/sh", "-c", "sleep 10"]}]}}}}}}`)
 	} else if kind == "Job" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "test-` + strings.ToLower(kind) + `-` + strconv.Itoa(num) + `-` + strconv.Itoa(id) + `", "namespace": "` + namespace + `", "labels": {"env":"test"}` + annotation + `}, "spec": {"template": {"spec": {"restartPolicy": "Never", "containers": [{"name": "test", "image": "busybox:1.30", "command": ["bin/sh", "-c", "sleep 10"]}]}}}}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "test-`)
+		body.WriteString(strings.ToLower(kind))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(num))
+		body.WriteString(`-`)
+		body.WriteString(strconv.Itoa(id))
+		body.WriteString(`", "namespace": "`)
+		body.WriteString(namespace)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}, "spec": {"template": {"spec": {"restartPolicy": "Never", "containers": [{"name": "test", "image": "busybox:1.30", "command": ["bin/sh", "-c", "sleep 10"]}]}}}}`)
 	}
-	return []byte(body), request
+	return body.Bytes(), request
 }
 func GetAnnotations(num int) string {
-	res := `, "annotations": {`
+	res := bytes.Buffer{}
+	res.WriteString(`, "annotations": {`)
 	for i := 0; i < num; i++ {
 		if i < 10 {
-			res += `"key-00` + strconv.Itoa(i) + `": "value-00` + strconv.Itoa(i) + `"`
+			res.WriteString(`"key-00`)
+			res.WriteString(strconv.Itoa(i))
+			res.WriteString(`": "value-00`)
+			res.WriteString(strconv.Itoa(i))
+			res.WriteString(`"`)
 		} else if i < 100 {
-			res += `"key-0` + strconv.Itoa(i) + `": "value-0` + strconv.Itoa(i) + `"`
+			res.WriteString(`"key-0`)
+			res.WriteString(strconv.Itoa(i))
+			res.WriteString(`": "value-0`)
+			res.WriteString(strconv.Itoa(i))
+			res.WriteString(`"`)
 		} else {
-			res += `"key-` + strconv.Itoa(i) + `": "value-` + strconv.Itoa(i) + `"`
+			res.WriteString(`"key-`)
+			res.WriteString(strconv.Itoa(i))
+			res.WriteString(`": "value-`)
+			res.WriteString(strconv.Itoa(i))
+			res.WriteString(`"`)
 		}
 		if i != num-1 {
-			res += ", "
+			res.WriteString(", ")
 		}
 	}
-
-	res += "}"
-	return res
+	res.WriteString("}")
+	return res.String()
 }
 func GetPatchAnnotations(num int) string {
-	res := `{"metadata": {"annotations": {`
+	res := bytes.Buffer{}
+	res.WriteString(`{"metadata": {"annotations": {`)
 	for i := 0; i < num; i++ {
 		if i < 10 {
-			res += `"key-00` + strconv.Itoa(i) + `": "value-00` + strconv.Itoa(i) + `"`
+			res.WriteString(`"key-00`)
+			res.WriteString(strconv.Itoa(i))
+			res.WriteString(`": "value-00`)
+			res.WriteString(strconv.Itoa(i))
+			res.WriteString(`"`)
 		} else if i < 100 {
-			res += `"key-0` + strconv.Itoa(i) + `": "value-0` + strconv.Itoa(i) + `"`
+			res.WriteString(`"key-0`)
+			res.WriteString(strconv.Itoa(i))
+			res.WriteString(`": "value-0`)
+			res.WriteString(strconv.Itoa(i))
+			res.WriteString(`"`)
 		} else {
-			res += `"key-` + strconv.Itoa(i) + `": "value-` + strconv.Itoa(i) + `"`
+			res.WriteString(`"key-`)
+			res.WriteString(strconv.Itoa(i))
+			res.WriteString(`": "value-`)
+			res.WriteString(strconv.Itoa(i))
+			res.WriteString(`"`)
 		}
 		if i != num-1 {
-			res += ", "
+			res.WriteString(", ")
 		}
 	}
-	res += "}}}"
-	return res
+	res.WriteString("}}}")
+	return res.String()
 }
 
 func GetPutDataAndUrl(res, namespace, resName string, antNum int) (data []byte, request string) {
 	kind, api_version, request := GetBasic(res, namespace)
 	// fmt.Println(kind, api_version, request)
-	body := ""
+	body := bytes.Buffer{}
 	annotation := GetAnnotations(antNum)
 	if kind == "Namespace" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "` + resName + `", "labels": {"env":"test"}` + annotation + `}}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "`)
+		body.WriteString(resName)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}}`)
 	} else if kind == "Node" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "` + resName + `", "labels": {"env":"test"}` + annotation + `}, "spec": {"unschedulable": true}}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "`)
+		body.WriteString(resName)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}, "spec": {"unschedulable": true}}`)
 	} else if kind == "PersistentVolume" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "` + resName + `", "labels": {"env":"test"}` + annotation + `}, "spec": {"accessModes": ["ReadWriteOnce"], "capacity": {"storage": "100Ki"}, "hostPath": {"path": "/root/data"}}}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "`)
+		body.WriteString(resName)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}, "spec": {"accessModes": ["ReadWriteOnce"], "capacity": {"storage": "100Ki"}, "hostPath": {"path": "/root/data"}}}`)
 	} else if kind == "ConfigMap" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "` + resName + `", "namespace": "` + namespace + `", "labels": {"env":"test"}` + annotation + `}, "data": {"test-data":""}}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "`)
+		body.WriteString(resName)
+		body.WriteString(`", "namespace": "`)
+		body.WriteString(namespace)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}, "data": {"test-data":""}}`)
 	} else if kind == "Endpoints" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "` + resName + `", "namespace": "` + namespace + `", "labels": {"env":"test"}` + annotation + `}}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "`)
+		body.WriteString(resName)
+		body.WriteString(`", "namespace": "`)
+		body.WriteString(namespace)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}}`)
 	} else if kind == "LimitRange" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "` + resName + `", "namespace": "` + namespace + `", "labels": {"env":"test"}` + annotation + `}, "spec": {"limits": [{"type":"Container"}]}}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "`)
+		body.WriteString(resName)
+		body.WriteString(`", "namespace": "`)
+		body.WriteString(namespace)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}, "spec": {"limits": [{"type":"Container"}]}}`)
 	} else if kind == "PersistentVolumeClaim" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "` + resName + `", "namespace": "` + namespace + `", "labels": {"env":"test"}` + annotation + `}, "spec": {"accessModes": ["ReadWriteOnce"], "resources": {"requests": {"storage": "200Ki"}}}}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "`)
+		body.WriteString(resName)
+		body.WriteString(`", "namespace": "`)
+		body.WriteString(namespace)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}, "spec": {"accessModes": ["ReadWriteOnce"], "resources": {"requests": {"storage": "200Ki"}}}}`)
 	} else if kind == "Pod" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "` + resName + `", "namespace": "` + namespace + `", "labels": {"env":"test"}` + annotation + `}, "spec": {"containers": [{"name": "test", "image": "nginx:1.17"}]}}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "`)
+		body.WriteString(resName)
+		body.WriteString(`", "namespace": "`)
+		body.WriteString(namespace)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}, "spec": {"containers": [{"name": "test", "image": "nginx:1.17"}]}}`)
 	} else if kind == "PodTemplate" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "` + resName + `", "namespace": "` + namespace + `", "labels": {"env":"test"}` + annotation + `}, "template": {"metadata": {"name": "pod-template"}, "spec": {"containers": [{"name": "test", "image": "nginx:1.17"}]}}}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "`)
+		body.WriteString(resName)
+		body.WriteString(`", "namespace": "`)
+		body.WriteString(namespace)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}, "template": {"metadata": {"name": "pod-template"}, "spec": {"containers": [{"name": "test", "image": "nginx:1.17"}]}}}`)
 	} else if kind == "ReplicationController" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "` + resName + `", "namespace": "` + namespace + `", "labels": {"env":"test"}` + annotation + `}, "spec": {"replicas": 0, "selector": {"app": "test"}, "template": {"metadata": {"name": "test", "labels": {"app": "test"}}, "spec": {"containers": [{"name": "test", "image": "nginx:1.17"}]}}}}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "`)
+		body.WriteString(resName)
+		body.WriteString(`", "namespace": "`)
+		body.WriteString(namespace)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}, "spec": {"replicas": 0, "selector": {"app": "test"}, "template": {"metadata": {"name": "test", "labels": {"app": "test"}}, "spec": {"containers": [{"name": "test", "image": "nginx:1.17"}]}}}}`)
 	} else if kind == "ResourceQuota" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "` + resName + `", "namespace": "` + namespace + `", "labels": {"env":"test"}` + annotation + `}}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "`)
+		body.WriteString(resName)
+		body.WriteString(`", "namespace": "`)
+		body.WriteString(namespace)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}}`)
 	} else if kind == "Secret" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "` + resName + `", "namespace": "` + namespace + `", "labels": {"env":"test"}` + annotation + `}, "data": {"test-secret":""}, "type": "Opaque"}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "`)
+		body.WriteString(resName)
+		body.WriteString(`", "namespace": "`)
+		body.WriteString(namespace)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}, "data": {"test-secret":""}, "type": "Opaque"}`)
 	} else if kind == "ServiceAccount" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "` + resName + `", "namespace": "` + namespace + `", "labels": {"env":"test"}` + annotation + `}}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "`)
+		body.WriteString(resName)
+		body.WriteString(`", "namespace": "`)
+		body.WriteString(namespace)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}}`)
 	} else if kind == "Service" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "` + resName + `", "namespace": "` + namespace + `", "labels": {"env":"test"}` + annotation + `},"spec": {"ports": [{"port": 80}]}}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "`)
+		body.WriteString(resName)
+		body.WriteString(`", "namespace": "`)
+		body.WriteString(namespace)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`},"spec": {"ports": [{"port": 80}]}}`)
 	} else if kind == "ControllerRevision" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "` + resName + `", "namespace": "` + namespace + `", "labels": {"env":"test"}` + annotation + `}, "revision": 0, "data": ""}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "`)
+		body.WriteString(resName)
+		body.WriteString(`", "namespace": "`)
+		body.WriteString(namespace)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}, "revision": 0, "data": ""}`)
 	} else if kind == "DaemonSet" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "` + resName + `", "namespace": "` + namespace + `", "labels": {"env":"test"}` + annotation + `}, "spec": {"selector": {"matchLabels": {"app": "test"}}, "template": {"metadata": {"name": "test", "labels": {"app": "test"}}, "spec": {"containers": [{"name": "test", "image": "nginx:1.17"}]}}}}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "`)
+		body.WriteString(resName)
+		body.WriteString(`", "namespace": "`)
+		body.WriteString(namespace)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}, "spec": {"selector": {"matchLabels": {"app": "test"}}, "template": {"metadata": {"name": "test", "labels": {"app": "test"}}, "spec": {"containers": [{"name": "test", "image": "nginx:1.17"}]}}}}`)
 	} else if kind == "Deployment" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "` + resName + `", "namespace": "` + namespace + `", "labels": {"env":"test"}` + annotation + `}, "spec": {"replicas": 0, "selector": {"matchLabels": {"app": "test"}}, "template":{"metadata": {"name": "test", "labels": {"app": "test"}}, "spec": {"containers": [{"name": "test","image": "nginx:1.17"}]}}}}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "`)
+		body.WriteString(resName)
+		body.WriteString(`", "namespace": "`)
+		body.WriteString(namespace)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}, "spec": {"replicas": 0, "selector": {"matchLabels": {"app": "test"}}, "template":{"metadata": {"name": "test", "labels": {"app": "test"}}, "spec": {"containers": [{"name": "test","image": "nginx:1.17"}]}}}}`)
 	} else if kind == "ReplicaSet" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "` + resName + `", "namespace": "` + namespace + `", "labels": {"env":"test"}` + annotation + `}, "spec": {"replicas": 0, "selector": {"matchLabels": {"app": "test"}}, "template":{"metadata": {"name": "test", "labels": {"app": "test"}}, "spec": {"containers": [{"name": "test","image": "nginx:1.17"}]}}}}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "`)
+		body.WriteString(resName)
+		body.WriteString(`", "namespace": "`)
+		body.WriteString(namespace)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}, "spec": {"replicas": 0, "selector": {"matchLabels": {"app": "test"}}, "template":{"metadata": {"name": "test", "labels": {"app": "test"}}, "spec": {"containers": [{"name": "test","image": "nginx:1.17"}]}}}}`)
 	} else if kind == "StatefulSet" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "` + resName + `", "namespace": "` + namespace + `", "labels": {"env":"test"}` + annotation + `}, "spec": {"replicas": 0, "selector": {"matchLabels": {"app": "test"}}, "serviceName": "", "template": {"metadata": {"name": "test", "labels": {"app": "test"}}, "spec": {"containers": [{"name": "test", "image": "nginx:1.17"}]}}}}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "`)
+		body.WriteString(resName)
+		body.WriteString(`", "namespace": "`)
+		body.WriteString(namespace)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}, "spec": {"replicas": 0, "selector": {"matchLabels": {"app": "test"}}, "serviceName": "", "template": {"metadata": {"name": "test", "labels": {"app": "test"}}, "spec": {"containers": [{"name": "test", "image": "nginx:1.17"}]}}}}`)
 	} else if kind == "CronJob" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "` + resName + `", "namespace": "` + namespace + `", "labels": {"env":"test"}` + annotation + `}, "spec": {"schedule": "0 */1 * * *", "suspend": true, "jobTemplate": {"spec": {"template": {"spec": {"restartPolicy": "Never", "containers": [{"name": "test", "image": "busybox:1.30", "command": ["bin/sh", "-c", "sleep 10"]}]}}}}}}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "`)
+		body.WriteString(resName)
+		body.WriteString(`", "namespace": "`)
+		body.WriteString(namespace)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}, "spec": {"schedule": "0 */1 * * *", "suspend": true, "jobTemplate": {"spec": {"template": {"spec": {"restartPolicy": "Never", "containers": [{"name": "test", "image": "busybox:1.30", "command": ["bin/sh", "-c", "sleep 10"]}]}}}}}}`)
 	} else if kind == "Job" {
-		body = `{"apiVersion": "` + api_version + `", "kind": "` + kind + `", "metadata": {"name": "` + resName + `", "namespace": "` + namespace + `", "labels": {"env":"test"}` + annotation + `}, "spec": {"template": {"spec": {"restartPolicy": "Never", "containers": [{"name": "test", "image": "busybox:1.30", "command": ["bin/sh", "-c", "sleep 10"]}]}}}}`
+		body.WriteString(`{"apiVersion": "`)
+		body.WriteString(api_version)
+
+		body.WriteString(`", "kind": "`)
+		body.WriteString(kind)
+		body.WriteString(`", "metadata": {"name": "`)
+		body.WriteString(resName)
+		body.WriteString(`", "namespace": "`)
+		body.WriteString(namespace)
+		body.WriteString(`", "labels": {"env":"test"}`)
+		body.WriteString(annotation)
+		body.WriteString(`}, "spec": {"template": {"spec": {"restartPolicy": "Never", "containers": [{"name": "test", "image": "busybox:1.30", "command": ["bin/sh", "-c", "sleep 10"]}]}}}}`)
 	}
-	return []byte(body), request
+	return body.Bytes(), request
 }

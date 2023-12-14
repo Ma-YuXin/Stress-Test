@@ -19,6 +19,7 @@ import (
 type stress struct {
 	defs.Meta
 	defs.Config
+	RpsPerConn  int
 	ConnSend    []int
 	ConnRecv    []int
 	ConnSendNum []int
@@ -84,6 +85,7 @@ func (s *stress) ClearIfAllowed() {
 func (s *stress) run() {
 	s.initStress()
 	clientSet := client.ClientSet(s.Conn)
+	client.PutClientSet(clientSet)
 	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(s.Duration))
 	defer cancel()
 	wg := &sync.WaitGroup{}
@@ -106,23 +108,29 @@ func (s *stress) run() {
 	}
 	wg.Wait()
 }
+
 func (s *stress) startWithDeadline(ctx context.Context, wg *sync.WaitGroup, id int, httpClient *http.Client) {
 	s.start(ctx, wg, math.MaxInt64, id, httpClient)
 }
 func (s *stress) start(ctx context.Context, wg *sync.WaitGroup, num, id int, httpClient *http.Client) {
 	defer wg.Done()
+	wgr := &sync.WaitGroup{}
+	defer wgr.Wait()
+	tick := time.NewTicker(time.Second / time.Duration(s.RpsPerConn))
+	defer tick.Stop()
 	for i := 0; i < num; i++ {
 		select {
 		case <-ctx.Done():
 			return
-		default:
+		case <-tick.C:
 			s.ConnSendNum[id]++
-			s.post(httpClient, i, id)
+			wgr.Add(1)
+			s.post(wgr, httpClient, i, id)
 		}
 	}
 }
 
-func (s *stress) post(httpClient *http.Client, seq, id int) {
+func (s *stress) post(wg *sync.WaitGroup, httpClient *http.Client, seq, id int) {
 	// data := []byte(``)
 	data, url := util.GetPostDataAndUrl(s.Res, s.Namespace, s.Anntation, seq, id)
 	// log.Println("data:", string(data))
