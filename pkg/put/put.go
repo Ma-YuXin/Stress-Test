@@ -50,6 +50,7 @@ func NewStress(num, conn, an int, ns string, duration time.Duration) *stress {
 		},
 	}
 }
+
 func (s *stress) initStress() {
 	s.ConnSend = make([]int, s.Conn)
 	s.ConnRecv = make([]int, s.Conn)
@@ -57,13 +58,12 @@ func (s *stress) initStress() {
 	s.clientSet = client.ClientSet(s.Conn)
 }
 
-// has probelm :
-// no,po,job
 func (s *stress) Run() {
 	start := time.Now()
 	s.run()
 	ioinfo.WriteInfo(start, s)
 }
+
 func (s *stress) Info() (string, string, string, int, int, time.Duration, []int, []int, []int) {
 	return s.Res, s.Namespace, s.Action, s.Conn, s.Anntation, s.Duration, s.ConnSend, s.ConnRecv, s.ConnSendNum
 
@@ -88,7 +88,7 @@ func (s *stress) start(ctx context.Context, wg *sync.WaitGroup, num, id int, res
 
 func (s *stress) run() {
 	s.initStress()
-	defer client.PutClientSet(s.clientSet)
+	// defer client.PutClientSet(s.clientSet)
 	list := s.getResList()
 	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(s.Duration))
 	defer cancel()
@@ -135,7 +135,6 @@ func (s *stress) getResList() []string {
 	if err != nil {
 		fmt.Println("read response has err", err)
 	}
-	// log.Println("body", string(body))
 	nslist := v1.NamespaceList{}
 	err = json.Unmarshal(body, &nslist)
 	if err != nil {
@@ -151,12 +150,12 @@ func (s *stress) put(id int, resName string, client *http.Client) {
 	data, request := util.GetPutDataAndUrl(s.Res, s.Namespace, resName, s.Anntation)
 	req, err := http.NewRequest("PUT", request+"/"+resName, bytes.NewBuffer(data))
 	log.Println("req:", request+"/"+resName)
-	// log.Println("data", string(data))
 	if err != nil {
 		log.Fatal("new http request err", err)
 	}
 	req.Header.Set("Authorization", s.Auth)
 	req.Header.Set("Content-Type", "application/json")
+	log.Println("PUT", req.URL.String())
 	reqout, err := httputil.DumpRequestOut(req, true)
 	if err != nil {
 		log.Println("parse to request out err", err)
@@ -172,9 +171,5 @@ func (s *stress) put(id int, resName string, client *http.Client) {
 		log.Println("parse to reponse out err", err)
 	}
 	s.ConnRecv[id] += len(repout)
-	// body, err := io.ReadAll(resp.Body)
-	// if err != nil {
-	// 	fmt.Println("read response has err", err)
-	// }
-	// log.Println("body", string(body))
+	log.Println("resp: ", resp.Status, resp.Request.Method, resp.Request.URL)
 }

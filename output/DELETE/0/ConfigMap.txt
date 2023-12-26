@@ -1,0 +1,36 @@
+2023-12-15 16:07:54.221673674 +0800 CST m=+368.632199063
+Running 2m4.637903182s myx-test @ https://192.168.12.127:6443/api/v1/namespaces/myx-test/configmaps
+3 connections
+Requests/bytes (per Connection):  [2589810 2589810 2590890]
+Response/bytes (per Connection):  [1224779 1224779 1225290]
+Requests Number (per Connection):  [2399 2399 2400]
+Requests/sec:  60.883475075749686 KB
+Transfer/sec:  89.67663236081445 KB
+
+2023-12-15 21:21:09.88801447 +0800 CST m=+1928.186568148
+Running 2m36.494688038s myx-test @ https://192.168.12.127:6443/api/v1/namespaces/myx-test/configmaps
+6 connections
+Requests/bytes (per Connection):  [2589810 2589810 2589810 2590890 2590890 2590890]
+Response/bytes (per Connection):  [1224779 1224779 1224779 1225290 1225290 1225290]
+Requests Number (per Connection):  [2399 2399 2399 2400 2400 2400]
+Requests/sec:  96.98624420762782 KB
+Transfer/sec:  142.85321013106258 KB
+
+2023-12-18 10:49:13.330469816 +0800 CST m=+928.432325730
+Running 2m32.085641637s myx-test @ https://192.168.12.127:6443/api/v1/namespaces/myx-test/configmaps
+6 connections
+Requests/bytes (per Connection):  [2590890 2590890 2590890 2590890 2590890 2590890]
+Response/bytes (per Connection):  [1225290 1225290 1225290 1225290 1225290 1225290]
+Requests Number (per Connection):  [2400 2400 2400 2400 2400 2400]
+Requests/sec:  99.81873325020517 KB
+Transfer/sec:  147.02525134404314 KB
+
+2023-12-18 12:06:21.832988583 +0000 UTC m=+488.652161203
+Running 4m0.978689779s myx-test @ https://192.168.12.127:6443/api/v1/namespaces/myx-test/configmaps
+9 connections
+Requests/bytes (per Connection):  [2590890 2590890 2590890 2590890 2590890 2590890 2590890 2590890 2590890]
+Response/bytes (per Connection):  [1225290 1225290 1225290 1225290 1225290 1225290 1225290 1225290 1225290]
+Requests Number (per Connection):  [2400 2400 2400 2400 2400 2400 2400 2400 2400]
+Requests/sec:  94.49588327295078 KB
+Transfer/sec:  139.18510621005495 KB
+

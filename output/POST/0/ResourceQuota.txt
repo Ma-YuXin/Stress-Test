@@ -1,0 +1,27 @@
+2023-12-15 17:35:07.74306829 +0800 CST m=+1519.512729225
+Running 1m0s myx-test @ https://192.168.12.127:6443/api/v1/namespaces/myx-test/resourcequotas
+3 connections
+Requests/bytes (per Connection):  [2990443 2990443 2990443]
+Response/bytes (per Connection):  [1953260 1954075 1954075]
+Requests Number (per Connection):  [2399 2399 2399]
+Requests/sec:  146.017724609375 KB
+Transfer/sec:  241.41827799479168 KB
+
+2023-12-15 23:08:08.021324674 +0800 CST m=+1099.823686052
+Running 1m0s myx-test @ https://192.168.12.127:6443/api/v1/namespaces/myx-test/resourcequotas
+6 connections
+Requests/bytes (per Connection):  [2985455 2985455 2985455 2985455 2985455 2985455]
+Response/bytes (per Connection):  [1950815 1950815 1950815 1950815 1950815 1950815]
+Requests Number (per Connection):  [2395 2395 2395 2395 2395 2395]
+Requests/sec:  291.54833984375 KB
+Transfer/sec:  482.0576171875 KB
+
+2023-12-18 12:46:47.705598148 +0000 UTC m=+2914.524770768
+Running 1m0s myx-test @ https://192.168.12.127:6443/api/v1/namespaces/myx-test/resourcequotas
+9 connections
+Requests/bytes (per Connection):  [2991690 2991690 2991690 2991690 2991690 2991690 2991690 2991690 2991690]
+Response/bytes (per Connection):  [1954890 1954890 1954890 1954890 1954890 1954076 1954890 1954890 1954890]
+Requests Number (per Connection):  [2400 2400 2400 2400 2400 2400 2400 2400 2400]
+Requests/sec:  438.23583984375 KB
+Transfer/sec:  724.5834309895833 KB
+

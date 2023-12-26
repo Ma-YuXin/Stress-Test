@@ -4,14 +4,12 @@ import (
 	"crypto/tls"
 	"net/http"
 	"sync"
-	"time"
 )
 
 var (
 	shortConnPool = sync.Pool{
 		New: func() any {
 			return &http.Client{
-				Timeout: time.Minute * 20,
 				Transport: &http.Transport{
 					TLSClientConfig:   &tls.Config{InsecureSkipVerify: true},
 					DisableKeepAlives: true,
@@ -22,7 +20,6 @@ var (
 	longConnPool = sync.Pool{
 		New: func() any {
 			return &http.Client{
-				Timeout: time.Minute * 20,
 				Transport: &http.Transport{
 					TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 				},
@@ -38,9 +35,9 @@ func ClientSet(num int) []*http.Client {
 	}
 	return httpClientSet
 }
-func PutClientSet(set []*http.Client){
+func PutClientSet(set []*http.Client) {
 	for i := 0; i < len(set); i++ {
-		PutClient(set[i]) 
+		PutClient(set[i])
 	}
 }
 func ClientSetShort(num int) []*http.Client {
@@ -50,19 +47,30 @@ func ClientSetShort(num int) []*http.Client {
 	}
 	return httpClientSet
 }
-func PutClientSetShort(set []*http.Client){
+func PutClientSetShort(set []*http.Client) {
 	for i := 0; i < len(set); i++ {
-		PutShortClient(set[i]) 
+		PutShortClient(set[i])
 	}
 }
 func GetShortClient() *http.Client {
-	return shortConnPool.Get().(*http.Client)
+	return &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig:   &tls.Config{InsecureSkipVerify: true},
+			DisableKeepAlives: true,
+		},
+	}
+	// return shortConnPool.Get().(*http.Client)
 }
 func PutShortClient(client *http.Client) {
 	shortConnPool.Put(client)
 }
 func GetClient() *http.Client {
-	return longConnPool.Get().(*http.Client)
+	return &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+	// return longConnPool.Get().(*http.Client)
 }
 func PutClient(client *http.Client) {
 	longConnPool.Put(client)

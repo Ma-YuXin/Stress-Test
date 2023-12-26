@@ -1,0 +1,27 @@
+2023-12-15 16:24:30.079667949 +0800 CST m=+1364.490193327
+Running 1m0s myx-test @ https://192.168.12.127:6443/api/v1/namespaces/myx-test/persistentvolumeclaims
+3 connections
+Requests/bytes (per Connection):  [3269762 3269762 3269762]
+Response/bytes (per Connection):  [2629496 2629496 2629496]
+Requests Number (per Connection):  [2398 2398 2398]
+Requests/sec:  159.65634765625 KB
+Transfer/sec:  288.04970703125 KB
+
+2023-12-15 21:37:50.520170132 +0800 CST m=+2928.818723835
+Running 1m0s myx-test @ https://192.168.12.127:6443/api/v1/namespaces/myx-test/persistentvolumeclaims
+6 connections
+Requests/bytes (per Connection):  [3272490 3272490 3271126 3272490 3272490 3272490]
+Response/bytes (per Connection):  [2631690 2631690 2630593 2631690 2631690 2631690]
+Requests Number (per Connection):  [2400 2400 2399 2400 2400 2400]
+Requests/sec:  319.55690104166666 KB
+Transfer/sec:  576.5400227864583 KB
+
+2023-12-18 12:26:09.657028938 +0000 UTC m=+1676.476201568
+Running 1m0s myx-test @ https://192.168.12.127:6443/api/v1/namespaces/myx-test/persistentvolumeclaims
+9 connections
+Requests/bytes (per Connection):  [3272490 3272490 3272490 3272490 3272490 3272490 3272490 3272490 3272490]
+Response/bytes (per Connection):  [2631690 2631690 2631690 2631690 2630593 2631690 2630593 2631690 2631690]
+Requests Number (per Connection):  [2400 2400 2400 2400 2400 2400 2400 2400 2400]
+Requests/sec:  479.36865234375 KB
+Transfer/sec:  864.8344075520833 KB
+

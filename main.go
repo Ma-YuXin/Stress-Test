@@ -13,19 +13,34 @@ import (
 
 // put ds
 func main() {
-	// rl := []string{
-	// 	"no", "pv", "cm", "ep", "limits", "pvc", "po", "podtemplate",
-	// 	"rc", "quota", "secret", "sa", "svc", "controllerrevision", "ds",
-	// 	"deploy", "rs", "sts", "cj", "job"}
-	// for _, v := range rl {
-	// 	postTest(v)
-	// 	time.Sleep(time.Minute)
-	// 	clearSingle(v)
-	// 	time.Sleep(time.Minute)
-	// }
-	// rps()
-	postRps()
+	rl := []string{ "no", "pv",
+		"cm", "ep", "limits", "pvc", "po", "podtemplate",
+		"rc", "quota", "secret", "sa", "svc",
+		"controllerrevision", "ds", "deploy", "rs", "sts",
+		"cj", "job"}
+	concurrency_list := []int{3, 6, 9, 15, 30, 60}
+	anno_num_list := []int{100, 200, 300, 400}
+	for _, v := range rl {
+		for _, an := range anno_num_list {
+			for _, cn := range concurrency_list {
+				log.Println("start conn : ", cn, ", annotation : ", an)
+				s := post.NewStress(-1, cn, an, "myx-test", time.Minute)
+				s.Res = v
+				s.RpsPerConn = 20
+				s.Run()
+				time.Sleep(time.Minute * 1)
+			}
+		}
+	}
 }
+// crictl pull registry.k8s.io/kube-apiserver:v1.29.0
+// crictl pull registry.k8s.io/kube-controller-manager:v1.29.0
+// crictl pull registry.k8s.io/kube-scheduler:v1.29.0
+// crictl pull registry.k8s.io/kube-proxy:v1.29.0
+// crictl pull registry.k8s.io/coredns/coredns:v1.11.1
+// crictl pull registry.k8s.io/pause:3.9
+// crictl pull registry.k8s.io/etcd:3.5.10-0
+
 func rps() {
 	actionRatio := map[string]float64{
 		"POST":   0.25,
@@ -63,16 +78,9 @@ func postTest(res string) {
 			log.Println("start conn : ", cn, ", annotation : ", an)
 			s := post.NewStress(-1, cn, an, "myx-test", time.Minute)
 			s.Res = res
+			s.RpsPerConn = 40
 			s.Run()
-			time.Sleep(time.Second * 40)
-			clearSingle(res)
-			if res == "po" || res == "deploy" || res == "rs" || res == "sts" || res == "job" {
-				time.Sleep(time.Minute * 5)
-				if cn >= 90 {
-					time.Sleep(time.Minute * 10)
-				}
-			}
-			time.Sleep(time.Minute * 1)
+			time.Sleep(time.Minute * 5)
 		}
 	}
 }

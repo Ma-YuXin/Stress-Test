@@ -78,7 +78,7 @@ func (s *stress) start(ctx context.Context, wg *sync.WaitGroup, id int, reslist 
 
 func (s *stress) run() {
 	s.initStress()
-	defer client.PutClientSet(s.clientSet)
+	// defer client.PutClientSet(s.clientSet)
 	list := s.getResList()
 	// fmt.Println(list)
 	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(s.Duration))
@@ -139,14 +139,13 @@ func (s *stress) getResList() []string {
 func (s *stress) delete(id int, resName string, client *http.Client) {
 	_, _, request := util.GetBasic(s.Res, s.Namespace)
 	req, err := http.NewRequest("DELETE", request+"/"+resName, nil)
-	log.Println("req:", request+"/"+resName)
 	if err != nil {
 		log.Fatal("new http request err", err)
 	}
 	req.Header.Set("Authorization", s.Auth)
 	req.Header.Set("Content-Type", "application/json")
+	log.Println("DELETE", req.URL.String())
 	reqout, err := httputil.DumpRequestOut(req, true)
-	// log.Println("request out : ", string(reqout))
 	if err != nil {
 		log.Println("parse to request out err", err)
 	}
@@ -161,9 +160,5 @@ func (s *stress) delete(id int, resName string, client *http.Client) {
 		log.Println("parse to reponse out err", err)
 	}
 	s.ConnRecv[id] += len(repout)
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("read response has err", err)
-	}
-	log.Println("body", string(body))
+	log.Println("resp: ", resp.Status, resp.Request.Method, resp.Request.URL)
 }

@@ -1,0 +1,36 @@
+2023-12-15 17:17:57.037272374 +0800 CST m=+488.806933310
+Running 3m24.050571704s myx-test @ https://192.168.12.127:6443/api/v1/namespaces/myx-test/pods
+3 connections
+Requests/bytes (per Connection):  [2562090 2562090 2562090]
+Response/bytes (per Connection):  [3809216 3963549 3934593]
+Requests Number (per Connection):  [2400 2400 2400]
+Requests/sec:  36.78560164861257 KB
+Transfer/sec:  92.81566665357565 KB
+
+2023-12-18 12:28:04.20344578 +0800 CST m=+449.643180746
+Running 2m51.343085922s myx-test @ https://192.168.12.127:6443/api/v1/namespaces/myx-test/pods
+6 connections
+Requests/bytes (per Connection):  [1921290 1921290 1921290 1921290 1921290 1921290]
+Response/bytes (per Connection):  [2210275 2302014 2220202 2412854 2264490 2239151]
+Requests Number (per Connection):  [1800 1800 1800 1800 1800 1800]
+Requests/sec:  65.70185504231402 KB
+Transfer/sec:  143.4936598233529 KB
+
+2023-12-18 13:56:35.169338591 +0800 CST m=+5760.609073561
+Running 2m41.914261475s myx-test @ https://192.168.12.127:6443/api/v1/namespaces/myx-test/pods
+9 connections
+Requests/bytes (per Connection):  [1921290 1921290 1921290 1921290 1921290 1921290 1921290 1920222 1921290]
+Response/bytes (per Connection):  [1779206 1825762 1834618 1823061 1805245 1909399 1920990 1781037 1827852]
+Requests Number (per Connection):  [1800 1800 1800 1800 1800 1800 1800 1799 1800]
+Requests/sec:  104.28540863574354 KB
+Transfer/sec:  203.84602211273497 KB
+
+2023-12-18 12:44:43.754177819 +0000 UTC m=+2790.573350449
+Running 4m59.036148041s myx-test @ https://192.168.12.127:6443/api/v1/namespaces/myx-test/pods
+9 connections
+Requests/bytes (per Connection):  [2562090 2562090 2562090 2562090 2562090 2562090 2562090 2562090 2562090]
+Response/bytes (per Connection):  [2272016 2160259 2109076 2327854 2165196 2167662 2074263 2163220 2300578]
+Requests Number (per Connection):  [2400 2400 2400 2400 2400 2400 2400 2400 2400]
+Requests/sec:  75.30316748708779 KB
+Transfer/sec:  139.76850042438514 KB
+

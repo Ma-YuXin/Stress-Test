@@ -72,8 +72,8 @@ func (s *stress) Run() {
 	s.run()
 	ioinfo.WriteInfo(start, s)
 }
-func (s *stress) Info() (string, string, string, int,int, time.Duration, []int, []int, []int) {
-	return s.Res, s.Namespace, s.Action, s.Conn,s.Anntation, s.Duration, s.ConnSend, s.ConnRecv, s.ConnSendNum
+func (s *stress) Info() (string, string, string, int, int, time.Duration, []int, []int, []int) {
+	return s.Res, s.Namespace, s.Action, s.Conn, s.Anntation, s.Duration, s.ConnSend, s.ConnRecv, s.ConnSendNum
 
 }
 func (s *stress) startWithDeadline(ctx context.Context, wg *sync.WaitGroup, id int, reslist []string, httpClient *http.Client) {
@@ -95,8 +95,8 @@ func (s *stress) start(ctx context.Context, wg *sync.WaitGroup, num, id int, res
 }
 
 func (s *stress) run() {
-	s.initStress()	
-	defer client.PutClientSet(s.clientSet)
+	s.initStress()
+	// defer client.PutClientSet(s.clientSet)
 	list := s.getResList()
 	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(s.Duration))
 	defer cancel()
@@ -159,8 +159,7 @@ func (s *stress) patch(id int, resName string, client *http.Client) {
 	_, _, request := util.GetBasic(s.Res, s.Namespace)
 	anno := util.GetPatchAnnotations(s.Anntation)
 	req, err := http.NewRequest("PATCH", request+"/"+resName, bytes.NewBufferString(anno))
-	log.Println("req:", request+"/"+resName)
-	// log.Println("data", anno)
+	log.Println("PATCH", req.URL.String())
 	if err != nil {
 		log.Fatal("new http request err", err)
 	}
@@ -181,9 +180,5 @@ func (s *stress) patch(id int, resName string, client *http.Client) {
 		log.Println("parse to reponse out err", err)
 	}
 	s.ConnRecv[id] += len(repout)
-	// body, err := io.ReadAll(resp.Body)
-	// if err != nil {
-	// 	fmt.Println("read response has err", err)
-	// }
-	// log.Println("body", string(body))
+	log.Println("resp: ", resp.Status, resp.Request.Method, resp.Request.URL)
 }

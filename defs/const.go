@@ -22,7 +22,7 @@ func init() {
 		"api/v1/namespaces/kube-system/pods/etcd-0-0",
 		"api/v1/namespaces/kube-system/services/kube-dns",
 		"api/v1/namespaces/kube-system/endpoints/kube-dns",
-		"api/v1/namespaces/test/configmaps/kube-root-ca.crt",
+		"api/v1/namespace s/test/configmaps/kube-root-ca.crt",
 		"api/v1/namespaces/test/limitranges/limit-range-demo",
 		"api/v1/namespaces/test/podtemplates/pod-template-demo",
 		"api/v1/namespaces/test/replicationcontrollers/rc-demo",
