@@ -1,0 +1,9 @@
+2023-12-28 10:33:55.660344041 +0000 UTC m=+5674.200545404
+Running 1m0s myx-test @ https://192.168.12.127:6443/api/v1/namespaces/myx-test/pods
+3 connections
+Requests/bytes (per Connection):  [18400 7360 7360]
+Response/bytes (per Connection):  [30575 12230 12230]
+Requests Number (per Connection):  [5 2 2]
+Requests/sec:  0.5390625 KB
+Transfer/sec:  1.434814453125 KB
+

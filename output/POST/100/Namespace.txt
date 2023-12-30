@@ -133,3 +133,30 @@ Requests Number (per Connection):  [1200 1200 1200 1200 1200 1200 1200 1200 1200
 Requests/sec:  4204.992350260417 KB
 Transfer/sec:  5218.002197265625 KB
 
+2023-12-27 13:39:19.556979463 +0000 UTC m=+62.315558841
+Running 1m0s myx-test @ https://192.168.12.127:6443/api/v1/namespaces
+3 connections
+Requests/bytes (per Connection):  [4305690 4305690 4305690]
+Response/bytes (per Connection):  [5610180 5610180 5610180]
+Requests Number (per Connection):  [1200 1200 1200]
+Requests/sec:  210.23876953125 KB
+Transfer/sec:  484.17333984375 KB
+
+2023-12-27 13:48:29.92013136 +0000 UTC m=+612.678710714
+Running 1m0s myx-test @ https://192.168.12.127:6443/api/v1/namespaces
+6 connections
+Requests/bytes (per Connection):  [4305690 4305690 4305690 4305690 4305690 4305690]
+Response/bytes (per Connection):  [3725220 2517540 4031220 5610180 5610180 5610180]
+Requests Number (per Connection):  [1200 1200 1200 1200 1200 1200]
+Requests/sec:  420.4775390625 KB
+Transfer/sec:  861.6318359375 KB
+
+2023-12-27 14:02:17.421182642 +0000 UTC m=+1440.179761986
+Running 1m0s myx-test @ https://192.168.12.127:6443/api/v1/namespaces
+9 connections
+Requests/bytes (per Connection):  [4305690 4305690 4305690 4302101 4305690 4305690 4305690 4305690 4305690]
+Response/bytes (per Connection):  [3326730 3762090 3144763 668789 665966 668524 4792400 4770664 4843817]
+Requests Number (per Connection):  [1200 1200 1200 1199 1200 1200 1200 1200 1200]
+Requests/sec:  630.6578938802083 KB
+Transfer/sec:  1064.3125651041667 KB
+

@@ -1,86 +1,132 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log"
+	"os"
+	"os/signal"
 	"stressTest/defs"
 	"stressTest/pkg/delete"
 	"stressTest/pkg/patch"
 	"stressTest/pkg/post"
 	"stressTest/pkg/put"
 	"stressTest/pkg/stress"
+	"syscall"
 	"time"
 )
 
+// kubectl delete -n myx-test -l env=test no
+// kubectl delete -n myx-test -l env=test pv
+// kubectl delete -n myx-test -l env=test cm
+// kubectl delete -n myx-test -l env=test ep
+// kubectl delete -n myx-test -l env=test limits
+// kubectl delete -n myx-test -l env=test pvc
+// kubectl delete -n myx-test -l env=test po
+// kubectl delete -n myx-test -l env=test podtemplate
+// kubectl delete -n myx-test -l env=test rc
+// kubectl delete -n myx-test -l env=test quota
+// kubectl delete -n myx-test -l env=test secret
+// kubectl delete -n myx-test -l env=test sa
+// kubectl delete -n myx-test -l env=test svc
+// kubectl delete -n myx-test -l env=test controllerrevision
+// kubectl delete -n myx-test -l env=test ds
+// kubectl delete -n myx-test -l env=test deploy
+// kubectl delete -n myx-test -l env=test rs
+// kubectl delete -n myx-test -l env=test sts
+// kubectl delete -n myx-test -l env=test cj
+// kubectl delete -n myx-test -l env=test job
+// kubectl delete -n myx-test -l env=test ns
+
 // put ds
 func main() {
-	rl := []string{ "no", "pv",
-		"cm", "ep", "limits", "pvc", "po", "podtemplate",
-		"rc", "quota", "secret", "sa", "svc",
-		"controllerrevision", "ds", "deploy", "rs", "sts",
-		"cj", "job"}
-	concurrency_list := []int{3, 6, 9, 15, 30, 60}
-	anno_num_list := []int{100, 200, 300, 400}
-	for _, v := range rl {
-		for _, an := range anno_num_list {
-			for _, cn := range concurrency_list {
-				log.Println("start conn : ", cn, ", annotation : ", an)
-				s := post.NewStress(-1, cn, an, "myx-test", time.Minute)
-				s.Res = v
-				s.RpsPerConn = 20
-				s.Run()
-				time.Sleep(time.Minute * 1)
-			}
-		}
-	}
+	// post.CreateRes(config.GetDefultNameSpace(), "sa", 50)
+	// delete.ClearAll(config.GetDefultNameSpace(), config.GetDefaultLabelSelector(), config.GetDefultAuthor())
+	rps()
+	// postTest()
 }
-// crictl pull registry.k8s.io/kube-apiserver:v1.29.0
-// crictl pull registry.k8s.io/kube-controller-manager:v1.29.0
-// crictl pull registry.k8s.io/kube-scheduler:v1.29.0
-// crictl pull registry.k8s.io/kube-proxy:v1.29.0
-// crictl pull registry.k8s.io/coredns/coredns:v1.11.1
-// crictl pull registry.k8s.io/pause:3.9
-// crictl pull registry.k8s.io/etcd:3.5.10-0
 
 func rps() {
-	actionRatio := map[string]float64{
-		"POST":   0.25,
-		"PATCH":  0.25,
-		"DELETE": 0.25,
-		"PUT":    0.25,
+	// resRatio := map[string]map[string]int{
+	// 	"POST":   {"pv": 4, "cm": 4, "ep": 4, "limits": 4, "pvc": 4, "podtemplate": 4, "rc": 4, "quota": 4, "secret": 4},
+	// 	"PATCH":  {"pv": 4, "cm": 4, "ep": 4, "limits": 4, "pvc": 4, "podtemplate": 4, "rc": 4, "quota": 4, "secret": 4},
+	// 	"PUT":    {"pv": 4, "cm": 4, "ep": 4, "limits": 4, "pvc": 4, "podtemplate": 4, "rc": 4, "quota": 4, "secret": 4},
+	// 	"GET":    {"pv": 4, "cm": 4, "ep": 4, "limits": 4, "pvc": 4, "podtemplate": 4, "rc": 4, "quota": 4, "secret": 4},
+	// 	"LIST":   {"pv": 4, "cm": 4, "ep": 4, "limits": 4, "pvc": 4, "podtemplate": 4, "rc": 4, "quota": 4, "secret": 4},
+	// 	"DELETE": {"pv": 1, "cm": 1, "ep": 1, "limits": 1, "pvc": 1, "podtemplate": 1, "rc": 1, "quota": 1, "secret": 1},
+	// }
+	// "podtemplate":2,
+	// "ns":2,
+	// "no":2,
+	// "pv":2,
+	// "cm":2,
+	// "ep":2,
+	// "limits":2,
+	// "pvc":2,
+	// "po" :2,
+	// "rc" :2,
+	// "quota" :2,
+	// "secret":2,
+	// "sa":2,
+	// "svc":2,
+	// "ds" :2,
+	// "deploy" :2,
+	// "rs" :2,
+	// "sts":2,
+	// "cj" :2,
+	// "job":2
+	resRatio := map[string]map[string]int{
+		"POST":   {"podtemplate": 2, "ns": 2, "no": 2, "pv": 2, "cm": 2, "ep": 2, "limits": 2, "pvc": 2, "rc": 2, "quota": 2, "secret": 2, "sa": 2, "svc": 2, "ds": 2, "deploy": 2, "rs": 2, "sts": 2, "cj": 2, "job": 2},
+		"PATCH":  {"podtemplate": 2, "ns": 2, "no": 2, "pv": 2, "cm": 2, "ep": 2, "limits": 2, "pvc": 2, "rc": 2, "quota": 2, "secret": 2, "sa": 2, "svc": 2, "ds": 2, "deploy": 2, "rs": 2, "sts": 2, "cj": 2, "job": 2},
+		"PUT":    {"podtemplate": 2, "ns": 2, "pv": 2, "cm": 2, "ep": 2, "limits": 2, "pvc": 2, "rc": 2, "quota": 2, "secret": 2, "sa": 2, "svc": 2, "ds": 2, "deploy": 2, "rs": 2, "sts": 2, "cj": 2, },
+		"GET":    {"podtemplate": 2, "ns": 2, "no": 2, "pv": 2, "cm": 2, "ep": 2, "limits": 2, "pvc": 2, "rc": 2, "quota": 2, "secret": 2, "sa": 2, "svc": 2, "ds": 2, "deploy": 2, "rs": 2, "sts": 2, "cj": 2, "job": 2},
+		"LIST":   {"podtemplate": 2, "ns": 2, "no": 2, "pv": 2, "cm": 2, "ep": 2, "limits": 2, "pvc": 2, "rc": 2, "quota": 2, "secret": 2, "sa": 2, "svc": 2, "ds": 2, "deploy": 2, "rs": 2, "sts": 2, "cj": 2, "job": 2},
+		"DELETE": {"pv": 1, "ns": 1, "no": 1, "limits": 1, "pvc": 1, "podtemplate": 1, "rc": 1, "secret": 1, "deploy": 4},
 	}
-	// "ns", "no", "pv",
-	// 	"cm", "ep", "limits", "pvc", "po", "podtemplate",
-	// 	"rc", "quota", "secret", "sa", "svc",
-	// 	"controllerrevision", "ds", "deploy", "rs", "sts",
-	// 	"cj", "job"
-	resRatio := map[string]map[string]float64{
-		"POST":   {"pv": 0.1, "cm": 0.1, "ep": 0.1, "limits": 0.1, "pvc": 0.1, "podtemplate": 0.1, "rc": 0.1, "quota": 0.1, "secret": 0.1},
-		"PATCH":  {"pv": 0.1, "cm": 0.1, "ep": 0.1, "limits": 0.1, "pvc": 0.1, "podtemplate": 0.1, "rc": 0.1, "quota": 0.1, "secret": 0.1},
-		"DELETE": {"pv": 0.1, "cm": 0.1, "ep": 0.1, "limits": 0.1, "pvc": 0.1, "podtemplate": 0.1, "rc": 0.1, "quota": 0.1, "secret": 0.1},
-		"PUT":    {"pv": 0.1, "cm": 0.1, "ep": 0.1, "limits": 0.1, "pvc": 0.1, "podtemplate": 0.1, "rc": 0.1, "quota": 0.1, "secret": 0.1},
-	}
-	stress.RpsWithPercent(100, actionRatio, resRatio, time.Second)
+	stress.RpsWithPercent(resRatio, time.Second*10)
 }
 func postRps() {
-	actionRatio := map[string]float64{
-		"POST": 1.0,
+
+	resRatio := map[string]map[string]int{
+		"POST": {"cm": 1},
 	}
-	resRatio := map[string]map[string]float64{
-		"POST": {"cm": 1.0},
-	}
-	stress.RpsWithPercent(100, actionRatio, resRatio, time.Second*30)
+	stress.RpsWithPercent(resRatio, time.Second*60)
 }
-func postTest(res string) {
-	concurrency_list := []int{3, 6, 9, 15, 30, 60, 90, 150, 300}
-	anno_num_list := []int{0, 100, 200, 300, 400}
+func postTest() {
+	ctx, cancel := context.WithCancel(context.TODO())
+	defer cancel()
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGQUIT)
+	done := make(chan bool, 1)
+	go func() {
+		sig := <-sigs
+		done <- true
+		fmt.Println()
+		fmt.Println(sig)
+		cancel()
+		log.Println("received interrupt , run aftercare program ,and clearing")
+		log.Println("start clear by interput conn : ")
+	}()
+	rl := []string{"sa", "svc",
+		"ds", "deploy", "rs", "sts", "no", "pv",
+		"cm", "ep", "limits", "pvc", "po", "podtemplate",
+		"rc", "cj", "job"}
+	concurrency_list := []int{3, 6, 9, 15, 30, 60}
+	anno_num_list := []int{100, 200, 300, 400}
 	for _, an := range anno_num_list {
 		for _, cn := range concurrency_list {
-			log.Println("start conn : ", cn, ", annotation : ", an)
-			s := post.NewStress(-1, cn, an, "myx-test", time.Minute)
-			s.Res = res
-			s.RpsPerConn = 40
-			s.Run()
-			time.Sleep(time.Minute * 5)
+			for _, v := range rl {
+				select {
+				case <-done:
+					log.Println("pra stop")
+					return
+				default:
+					s := post.NewStress(-1, cn, an, "myx-test", time.Minute)
+					s.Res = v
+					s.RpsPerConn = 100
+					s.Run(ctx)
+				}
+			}
 		}
 	}
 }
@@ -92,33 +138,39 @@ func clearSingle(res string) {
 	}
 }
 func patchTest(res string) {
+	ctx, cancel := context.WithCancel(context.TODO())
+	defer cancel()
 	concurrency_list := []int{3, 6, 9, 15, 30, 60, 90, 150, 300}
 	anno_num_list := []int{0, 100, 200, 300, 400}
 	for _, an := range anno_num_list {
 		for _, cn := range concurrency_list {
 			s := patch.NewStress(-1, cn, an, "myx-test", time.Minute)
 			s.Res = res
-			s.Run()
+			s.Run(ctx)
 			time.Sleep(time.Second * 40)
 		}
 	}
 }
 func putTest(res string) {
+	ctx, cancel := context.WithCancel(context.TODO())
+	defer cancel()
 	concurrency_list := []int{3, 6, 9, 15, 30, 60, 90, 150, 300}
 	anno_num_list := []int{0, 100, 200, 300, 400}
 	for _, an := range anno_num_list {
 		for _, cn := range concurrency_list {
 			s := put.NewStress(-1, cn, an, "myx-test", time.Minute)
 			s.Res = res
-			s.Run()
+			s.Run(ctx)
 			time.Sleep(time.Second * 40)
 		}
 	}
 }
 func deleteTest(res string) {
+	ctx, cancel := context.WithCancel(context.TODO())
+	defer cancel()
 	s := delete.NewStress(10, "myx-test", time.Second*100)
 	s.Res = res
-	s.Run()
+	s.Run(ctx)
 }
 
 func clear() {

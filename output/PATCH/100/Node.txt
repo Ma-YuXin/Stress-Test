@@ -79,3 +79,12 @@ Requests Number (per Connection):  [375 425 412 390 435 421 382 471 402 404 455 
 Requests/sec:  7208.736686197916 KB
 Transfer/sec:  21480.992154947915 KB
 
+2023-12-26 10:00:33.723124356 +0000 UTC m=+60.764405801
+Running 1m0s myx-test @ https://192.168.12.127:6443/api/v1/nodes
+3 connections
+Requests/bytes (per Connection):  [22098373 22584533 25230169]
+Response/bytes (per Connection):  [43951588 44917445 50175075]
+Requests Number (per Connection):  [6273 6411 7162]
+Requests/sec:  1137.9081217447917 KB
+Transfer/sec:  3400.995817057292 KB
+

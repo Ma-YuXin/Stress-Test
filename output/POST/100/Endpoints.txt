@@ -1,0 +1,9 @@
+2023-12-28 10:09:05.623311417 +0000 UTC m=+4184.163512684
+Running 1m0s myx-test @ https://192.168.12.127:6443/api/v1/namespaces/myx-test/endpoints
+3 connections
+Requests/bytes (per Connection):  [3170626 3087090 3123410]
+Response/bytes (per Connection):  [3984262 3879290 3924930]
+Requests Number (per Connection):  [873 850 860]
+Requests/sec:  152.68759765625 KB
+Transfer/sec:  344.557421875 KB
+

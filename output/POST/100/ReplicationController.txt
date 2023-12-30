@@ -1,0 +1,9 @@
+2023-12-28 10:48:28.615322203 +0000 UTC m=+6547.155523479
+Running 1m0s myx-test @ https://192.168.12.127:6443/api/v1/namespaces/myx-test/replicationcontrollers
+3 connections
+Requests/bytes (per Connection):  [2822281 2725756 2849308]
+Response/bytes (per Connection):  [4075215 3935840 4114240]
+Requests Number (per Connection):  [731 706 738]
+Requests/sec:  136.675537109375 KB
+Transfer/sec:  334.02734375 KB
+

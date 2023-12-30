@@ -18,6 +18,10 @@ import (
 	"time"
 )
 
+var (
+	Debug bool
+)
+
 type stress struct {
 	defs.Meta
 	defs.Config
@@ -38,6 +42,7 @@ func NewStress(num, conn, antNum int, ns string, duration time.Duration) *stress
 	if antNum < 0 {
 		panic("anntation number must greater or equal than zero ")
 	}
+
 	res := &stress{
 		Meta: defs.Meta{
 			Namespace: ns,
@@ -52,23 +57,47 @@ func NewStress(num, conn, antNum int, ns string, duration time.Duration) *stress
 			Auth:          "Bearer " + defs.Token,
 		},
 	}
+	res.initStress()
 	return res
 }
 func CreateRes(ns, res string, num int) {
+	Debug = true
 	s := NewStress(num, 1, 0, ns, time.Hour)
+	s.clientSet = client.ClientSetWithOutReuse(s.Conn)
 	s.Res = res
-	s.run()
+	s.RpsPerConn = 50
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(s.Duration))
+	defer cancel()
+	s.run(ctx, context.TODO())
+	Debug = false
 }
-func (s *stress) Run() {
+func (s *stress) Run(ctx context.Context) {
+	deadctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(s.Duration))
+	defer cancel()
 	start := time.Now()
-	s.run()
-	ioinfo.WriteInfo(start, s)
-	time.Sleep(time.Minute * 1)
-	start = time.Now()
-	s.Clear()
-	end := time.Now()
-	s.Duration = end.Sub(start)
-	ioinfo.WriteInfo(start, s)
+	log.Println("start post conn : ", s.Conn, ", annotation : ", s.Anntation, "res:", s.Res)
+	s.run(deadctx, ctx)
+	select {
+	case <-ctx.Done():
+		log.Println("programm has been interupted res: ", s.Res, "conn", s.Conn)
+		log.Println("now is clearing the res")
+		time.Sleep(time.Second * 2)
+		s.Clear()
+		log.Println("clear complete")
+		return
+	default:
+		ioinfo.WriteInfo(start, s)
+		time.Sleep(time.Minute * 1)
+		start = time.Now()
+		log.Println("start clear conn : ", s.Conn, ", annotation : ", s.Anntation, "res:", s.Res)
+		s.Clear()
+		log.Println("clear res complete")
+		end := time.Now()
+		s.Duration = end.Sub(start)
+		ioinfo.WriteInfo(start, s)
+		time.Sleep(time.Minute)
+	}
+
 }
 func (s *stress) Info() (string, string, string, int, int, time.Duration, []int, []int, []int) {
 	return s.Res, s.Namespace, s.Action, s.Conn, s.Anntation, s.Duration, s.ConnSend, s.ConnRecv, s.ConnSendNum
@@ -78,18 +107,16 @@ func (s *stress) initStress() {
 	s.ConnSend = make([]int, s.Conn)
 	s.ConnRecv = make([]int, s.Conn)
 	s.ConnSendNum = make([]int, s.Conn)
-	s.clientSet = client.ClientSet(s.Conn)
+	s.clientSet = client.ClientSetWithReuse(s.Conn)
 }
-func (s *stress) run() {
-	s.initStress()
+func (s *stress) run(ctx, cal context.Context) {
+
 	// defer client.PutClientSet(s.clientSet)
-	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(s.Duration))
-	defer cancel()
 	wg := &sync.WaitGroup{}
 	if s.Num < 0 {
 		for i := 0; i < s.Conn; i++ {
 			wg.Add(1)
-			go s.startWithDeadline(ctx, wg, i, s.clientSet[i])
+			go s.startWithDeadline(ctx, cal, wg, i, s.clientSet[i])
 		}
 	} else if s.Num > 0 {
 		avg := s.Num / s.Conn
@@ -97,19 +124,19 @@ func (s *stress) run() {
 		for i := 0; i < s.Conn; i++ {
 			wg.Add(1)
 			if i < remain {
-				go s.start(ctx, wg, avg+1, i, s.clientSet[i])
+				go s.start(ctx, cal, wg, avg+1, i, s.clientSet[i])
 			} else {
-				go s.start(ctx, wg, avg, i, s.clientSet[i])
+				go s.start(ctx, cal, wg, avg, i, s.clientSet[i])
 			}
 		}
 	}
 	wg.Wait()
 }
 
-func (s *stress) startWithDeadline(ctx context.Context, wg *sync.WaitGroup, id int, httpClient *http.Client) {
-	s.start(ctx, wg, math.MaxInt64, id, httpClient)
+func (s *stress) startWithDeadline(ctx, cal context.Context, wg *sync.WaitGroup, id int, httpClient *http.Client) {
+	s.start(ctx, cal, wg, math.MaxInt64, id, httpClient)
 }
-func (s *stress) start(ctx context.Context, wg *sync.WaitGroup, num, id int, httpClient *http.Client) {
+func (s *stress) start(ctx, cal context.Context, wg *sync.WaitGroup, num, id int, httpClient *http.Client) {
 	defer wg.Done()
 	wgr := &sync.WaitGroup{}
 	defer wgr.Wait()
@@ -119,10 +146,12 @@ func (s *stress) start(ctx context.Context, wg *sync.WaitGroup, num, id int, htt
 		select {
 		case <-ctx.Done():
 			return
+		case <-cal.Done():
+			return
 		case <-tick.C:
 			s.ConnSendNum[id]++
 			wgr.Add(1)
-			go s.post(wgr, httpClient, i, id)
+			s.post(wgr, httpClient, i, id)
 		}
 	}
 }
@@ -131,7 +160,9 @@ func (s *stress) post(wg *sync.WaitGroup, httpClient *http.Client, seq, id int) 
 	defer wg.Done()
 	data, url := util.GetPostDataAndUrl(s.Res, s.Namespace, s.Anntation, seq, id)
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(data))
-	log.Println("POST", req.URL.String())
+	// if Debug {
+	// 	log.Println("POST", req.URL.String(), "test-", seq, "-", id)
+	// }
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -148,7 +179,9 @@ func (s *stress) post(wg *sync.WaitGroup, httpClient *http.Client, seq, id int) 
 		return
 	}
 	defer resp.Body.Close()
-	log.Println("resp: ", resp.Status, resp.Request.Method, resp.Request.URL)
+	if strings.Compare("300", resp.Status) <= 0 {
+		log.Println("resp: ", resp.Status, resp.Request.Method, resp.Request.URL)
+	}
 	respo, err := httputil.DumpResponse(resp, true)
 	if err != nil {
 		log.Println("DumpResponse err:", err)
@@ -162,7 +195,6 @@ func (s *stress) Clear() {
 	connSendNum := make([]int, len(s.ConnSendNum))
 	copy(connSendNum, s.ConnSendNum)
 	s.initStress()
-	defer client.PutClientSet(s.clientSet)
 	s.runDel(connSendNum)
 }
 
@@ -192,7 +224,7 @@ func (s *stress) delete(id int, resName string, client *http.Client) {
 	}
 	req.Header.Set("Authorization", s.Auth)
 	req.Header.Set("Content-Type", "application/json")
-	log.Println("DELETE", req.URL.String())
+	// log.Println("DELETE", req.URL.String())
 	reqout, err := httputil.DumpRequestOut(req, true)
 	if err != nil {
 		log.Println("parse to request out err", err)
@@ -204,7 +236,9 @@ func (s *stress) delete(id int, resName string, client *http.Client) {
 		return
 	}
 	defer resp.Body.Close()
-	log.Println("resp: ", resp.Status, resp.Request.Method, resp.Request.URL)
+	if strings.Compare("300", resp.Status) <= 0 {
+		log.Println("resp: ", resp.Status, resp.Request.Method, resp.Request.URL)
+	}
 	repout, err := httputil.DumpResponse(resp, true)
 	if err != nil {
 		log.Println("parse to reponse out err", err)

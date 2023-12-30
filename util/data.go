@@ -2,13 +2,13 @@ package util
 
 import (
 	"bytes"
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"strconv"
+	"stressTest/client"
 	"stressTest/config"
 	"stressTest/defs"
 	"strings"
@@ -17,11 +17,7 @@ import (
 )
 
 func GetResList(res string) []string {
-	client := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		},
-	}
+	client := client.GetClientWithoutReuse(false)
 	_, _, request := GetBasic(res, config.GetDefultNameSpace())
 	req, err := http.NewRequest("GET", request+"?labelSelector="+config.GetDefaultLabelSelector(), nil)
 	if err != nil {

@@ -1,0 +1,9 @@
+2023-12-28 11:04:31.254383931 +0000 UTC m=+7509.794585197
+Running 1m0s myx-test @ https://192.168.12.127:6443/apis/batch/v1/namespaces/myx-test/jobs
+3 connections
+Requests/bytes (per Connection):  [2613610 2560578 2628762]
+Response/bytes (per Connection):  [4087230 4004294 4110926]
+Requests Number (per Connection):  [690 676 694]
+Requests/sec:  127.00113932291667 KB
+Transfer/sec:  325.6087239583333 KB
+

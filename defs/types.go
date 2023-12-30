@@ -1,6 +1,9 @@
 package defs
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 type empty struct{}
 type ActionMapper map[string]map[string][]string
@@ -21,7 +24,7 @@ type Meta struct {
 	Res       string
 	Namespace string
 }
-type Stress interface{
-	Run() 
-	Info()( string,string,string,int,int,time.Duration,[]int,[]int,[]int)
+type Stress interface {
+	Run(context.Context)
+	Info() (string, string, string, int, int, time.Duration, []int, []int, []int)
 }

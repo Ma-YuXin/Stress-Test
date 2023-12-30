@@ -5,45 +5,54 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
+	"stressTest/client"
+	"stressTest/config"
 	"stressTest/defs"
 	"stressTest/util"
 	"strings"
+	"sync"
 	"time"
 
 	v1 "k8s.io/api/core/v1"
 )
 
-func Delete() {
-	auth := "Bearer " + defs.Token
-	req, err := http.NewRequest("DELETE", "https://192.168.12.127:6443/api/v1/namespaces/myx-test/configmaps", nil)
-	if err != nil {
-		log.Fatal(err)
+func Delete(wg *sync.WaitGroup, id, num int, res string) {
+	defer wg.Done()
+	log.Println("start delete ", res)
+	client := client.GetClientWithoutReuse(false)
+	for i := 0; i < num; i++ {
+		resName := "test-" + strings.ToLower(util.Res2kind(res)) + "-" + strconv.Itoa(i) + "-" + strconv.Itoa(id)
+		_, _, request := util.GetBasic(res, config.GetDefultNameSpace())
+		req, err := http.NewRequest("DELETE", request+"/"+resName, nil)
+		if err != nil {
+			log.Fatal("new http request err", err)
+		}
+		req.Header.Set("Authorization", config.GetDefultAuthor())
+		req.Header.Set("Content-Type", "application/json")
+		// log.Println("DELETE", req.URL.String())
+		resp, err := client.Do(req)
+		if err != nil {
+			log.Println("do request has err", err)
+			return
+		}
+		defer resp.Body.Close()
+		if strings.Compare("300", resp.Status) <= 0 {
+			log.Println("resp: ", resp.Status, resp.Request.Method, resp.Request.URL)
+		}
+		io.Copy(io.Discard, resp.Body)
 	}
-	req.Header.Set("Authorization", auth)
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	client := &http.Client{
-		Transport: tr,
-	}
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer resp.Body.Close()
-	// body, err := io.ReadAll(resp.Body)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// log.Println(string(body))
+	log.Println(" delete ", res, " complete")
+
 }
 func ClearAll(ns, labelSelector, auth string) {
+	log.Println("in delete  ClearAll")
 	for _, v := range defs.Reslist {
 		ClearPost(v, ns, labelSelector, auth)
 	}
+	log.Println("complete delete ClearAll")
 }
 func ClearPost(res, ns, labelSelector, auth string) {
 	_, _, request := util.GetBasic(res, ns)
@@ -60,17 +69,15 @@ func ClearPost(res, ns, labelSelector, auth string) {
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		},
 	}
-	_, err = client.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		log.Fatal("req err : ", err)
 	}
-	// defer resp.Body.Close()
-	// log.Println("delete post : ", resp.StatusCode, resp.Status)
-	// body, err := io.ReadAll(resp.Body)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// log.Println("delete : ", string(body))
+	defer resp.Body.Close()
+	if strings.Compare("300", resp.Status) <= 0 {
+		log.Println("resp: ", resp.Status, resp.Request.Method, resp.Request.URL)
+	}
+	io.Copy(io.Discard, resp.Body)
 }
 func DeleteNameSpace(res, ns, labelSelector, auth string) {
 	_, _, request := util.GetBasic(res, ns)
@@ -114,11 +121,9 @@ func DeleteNameSpace(res, ns, labelSelector, auth string) {
 			panic(err)
 		}
 		defer resp.Body.Close()
-		respBody, err := io.ReadAll(resp.Body)
-		if err != nil {
-			panic(err)
-		}
-		fmt.Printf("Deleted namespace %s, response: %s\n", namespace.Name, respBody)
+
+		fmt.Printf("Deleted namespace %s", namespace.Name)
+		io.Copy(io.Discard, resp.Body)
 	}
 }
 func DeleteTerminatedNamespace(res, ns, labelSelector, auth string) {
@@ -138,7 +143,7 @@ func DeleteTerminatedNamespace(res, ns, labelSelector, auth string) {
 		panic(err)
 	}
 	defer resp.Body.Close()
-	respBody, err := ioutil.ReadAll(resp.Body)
+	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		panic(err)
 	}
@@ -161,11 +166,8 @@ func DeleteTerminatedNamespace(res, ns, labelSelector, auth string) {
 				panic(err)
 			}
 			defer resp.Body.Close()
-			respBody, err := ioutil.ReadAll(resp.Body)
-			if err != nil {
-				panic(err)
-			}
-			fmt.Printf("Finalized namespace %s, response: %s\n", namespace.Name, respBody)
+			io.Copy(io.Discard, resp.Body)
+			fmt.Printf("Finalized namespace %s", namespace.Name)
 		}
 	}
 }

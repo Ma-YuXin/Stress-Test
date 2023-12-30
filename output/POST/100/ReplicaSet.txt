@@ -1,0 +1,9 @@
+2023-12-28 09:29:50.82942606 +0000 UTC m=+1829.369627329
+Running 1m0s myx-test @ https://192.168.12.127:6443/apis/apps/v1/namespaces/myx-test/replicasets
+3 connections
+Requests/bytes (per Connection):  [2821018 2925076 2936638]
+Response/bytes (per Connection):  [4044922 4194124 4210702]
+Requests Number (per Connection):  [732 759 762]
+Requests/sec:  141.3205078125 KB
+Transfer/sec:  343.953125 KB
+

@@ -1,0 +1,27 @@
+2023-12-28 10:30:34.229756868 +0000 UTC m=+6190.895463752
+Running 1m0s myx-test @ https://192.168.12.127:6443/api/v1/namespaces/myx-test/podtemplates
+3 connections
+Requests/bytes (per Connection):  [912859 891199 907444]
+Response/bytes (per Connection):  [4493714 4391763 4466455]
+Requests Number (per Connection):  [843 823 838]
+Requests/sec:  44.13251953125 KB
+Transfer/sec:  261.44912109375 KB
+
+2023-12-28 10:31:42.251376808 +0000 UTC m=+6258.917083698
+Running 7.962062294s myx-test @ https://192.168.12.127:6443/api/v1/namespaces/myx-test/podtemplates
+3 connections
+Requests/bytes (per Connection):  [912859 891199 907444]
+Response/bytes (per Connection):  [495464 483704 492524]
+Requests Number (per Connection):  [843 823 838]
+Requests/sec:  332.57101917808734 KB
+Transfer/sec:  513.0769189916364 KB
+
+2023-12-28 10:42:28.424710816 +0000 UTC m=+6186.964912084
+Running 32.26109188s myx-test @ https://192.168.12.127:6443/api/v1/namespaces/myx-test/podtemplates
+3 connections
+Requests/bytes (per Connection):  [954013 946432 972424]
+Response/bytes (per Connection):  [4700025 4662680 4790720]
+Requests Number (per Connection):  [881 874 898]
+Requests/sec:  86.96345874616132 KB
+Transfer/sec:  515.3960782301643 KB
+

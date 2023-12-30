@@ -1,0 +1,9 @@
+2023-12-28 10:57:08.744915227 +0000 UTC m=+7067.285116495
+Running 1m0s myx-test @ https://192.168.12.127:6443/apis/batch/v1/namespaces/myx-test/cronjobs
+3 connections
+Requests/bytes (per Connection):  [2481201 2423136 2434749]
+Response/bytes (per Connection):  [3665128 3579358 3596512]
+Requests Number (per Connection):  [641 626 629]
+Requests/sec:  119.45126953125 KB
+Transfer/sec:  295.8998046875 KB
+

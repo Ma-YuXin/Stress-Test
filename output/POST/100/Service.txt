@@ -1,0 +1,36 @@
+2023-12-28 09:06:25.352670778 +0000 UTC m=+423.892872061
+Running 1m0s myx-test @ https://192.168.12.127:6443/api/v1/namespaces/myx-test/services
+3 connections
+Requests/bytes (per Connection):  [816293 823615 849242]
+Response/bytes (per Connection):  [1121749 1131829 1167046]
+Requests Number (per Connection):  [223 225 232]
+Requests/sec:  40.513509114583336 KB
+Transfer/sec:  96.18772786458334 KB
+
+2023-12-28 11:20:28.404657497 +0000 UTC m=+8466.944858766
+Running 1m0s myx-test @ https://192.168.12.127:6443/api/v1/namespaces/myx-test/services
+6 connections
+Requests/bytes (per Connection):  [219590 252530 267170 300110 241550 274490]
+Response/bytes (per Connection):  [301770 347016 367198 412412 331944 377192]
+Requests Number (per Connection):  [60 69 73 82 66 75]
+Requests/sec:  25.31640625 KB
+Transfer/sec:  60.10696614583333 KB
+
+2023-12-28 11:41:22.512173295 +0000 UTC m=+89.722759876
+Running 1m0s myx-test @ https://192.168.12.127:6443/api/v1/namespaces/myx-test/services
+3 connections
+Requests/bytes (per Connection):  [314750 314750 347690]
+Response/bytes (per Connection):  [432538 432536 477816]
+Requests Number (per Connection):  [86 86 95]
+Requests/sec:  15.90478515625 KB
+Transfer/sec:  37.76171875 KB
+
+2023-12-28 13:18:37.266153776 +0000 UTC m=+275.008326494
+Running 1m0s myx-test @ https://192.168.12.127:6443/api/v1/namespaces/myx-test/services
+3 connections
+Requests/bytes (per Connection):  [838259 801649 808971]
+Response/bytes (per Connection):  [1151995 1101619 1111733]
+Requests Number (per Connection):  [229 219 221]
+Requests/sec:  39.858056640625 KB
+Transfer/sec:  94.63258463541666 KB
+

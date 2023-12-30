@@ -1,0 +1,9 @@
+2023-12-28 09:37:18.363415746 +0000 UTC m=+2276.903617037
+Running 1m0s myx-test @ https://192.168.12.127:6443/apis/apps/v1/namespaces/myx-test/statefulsets
+3 connections
+Requests/bytes (per Connection):  [3028608 2900634 2985950]
+Response/bytes (per Connection):  [4692919 4494622 4626820]
+Requests Number (per Connection):  [781 748 770]
+Requests/sec:  145.10403645833333 KB
+Transfer/sec:  369.94715169270836 KB
+

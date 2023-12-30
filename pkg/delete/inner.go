@@ -32,8 +32,7 @@ func NewStress(conn int, ns string, duration time.Duration) *stress {
 	if conn < 1 {
 		log.Fatal("connection num is less than one")
 	}
-
-	return &stress{
+	s:=&stress{
 		Config: defs.Config{
 			Conn:          conn,
 			Duration:      duration,
@@ -45,17 +44,19 @@ func NewStress(conn int, ns string, duration time.Duration) *stress {
 			Namespace: ns,
 		},
 	}
+	s.initStress()
+	return s
 }
 func (s *stress) initStress() {
 	s.ConnSend = make([]int, s.Conn)
 	s.ConnRecv = make([]int, s.Conn)
 	s.ConnSendNum = make([]int, s.Conn)
-	s.clientSet = client.ClientSet(s.Conn)
+	s.clientSet = client.ClientSetWithReuse(s.Conn)
 }
 func (s *stress) Info() (string, string, string, int, int, time.Duration, []int, []int, []int) {
 	return s.Res, s.Namespace, s.Action, s.Conn, s.Anntation, s.Duration, s.ConnSend, s.ConnRecv, s.ConnSendNum
 }
-func (s *stress) Run() {
+func (s *stress) Run(ctx context.Context) {
 	start := time.Now()
 	s.run()
 	ioinfo.WriteInfo(start, s)
@@ -77,7 +78,7 @@ func (s *stress) start(ctx context.Context, wg *sync.WaitGroup, id int, reslist 
 }
 
 func (s *stress) run() {
-	s.initStress()
+	
 	// defer client.PutClientSet(s.clientSet)
 	list := s.getResList()
 	// fmt.Println(list)

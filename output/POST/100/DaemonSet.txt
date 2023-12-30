@@ -1,0 +1,18 @@
+2023-12-28 09:14:11.707372835 +0000 UTC m=+890.247574103
+Running 1m0s myx-test @ https://192.168.12.127:6443/apis/apps/v1/namespaces/myx-test/daemonsets
+3 connections
+Requests/bytes (per Connection):  [3323598 3385006 3269866]
+Response/bytes (per Connection):  [5121414 5216038 5038618]
+Requests Number (per Connection):  [866 882 852]
+Requests/sec:  162.40999348958334 KB
+Transfer/sec:  412.6715494791667 KB
+
+2023-12-28 11:28:00.196946133 +0000 UTC m=+8918.737147399
+Running 1m0s myx-test @ https://192.168.12.127:6443/apis/apps/v1/namespaces/myx-test/daemonsets
+6 connections
+Requests/bytes (per Connection):  [2513780 2540646 2536808 2548322 2529132 2483076]
+Response/bytes (per Connection):  [3873560 3904348 3903739 3916176 3897216 3820943]
+Requests Number (per Connection):  [655 662 661 664 659 647]
+Requests/sec:  246.6107421875 KB
+Transfer/sec:  626.10263671875 KB
+

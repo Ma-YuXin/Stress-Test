@@ -1,0 +1,9 @@
+2023-12-28 10:40:56.151072687 +0000 UTC m=+6094.691273960
+Running 1m0s myx-test @ https://192.168.12.127:6443/api/v1/namespaces/myx-test/podtemplates
+3 connections
+Requests/bytes (per Connection):  [3310688 3284382 3374574]
+Response/bytes (per Connection):  [4704430 4667050 4795210]
+Requests Number (per Connection):  [881 874 898]
+Requests/sec:  162.26634114583334 KB
+Transfer/sec:  392.84397786458334 KB
+

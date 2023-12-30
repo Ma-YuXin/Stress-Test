@@ -45,7 +45,7 @@ func NewStress(num, conn, anno int, ns string, duration time.Duration) *stress {
 		anno = 0
 		log.Println("anno is less than 0, change it to 0")
 	}
-	return &stress{
+	s:=&stress{
 		Config: defs.Config{
 			Conn:          conn,
 			Num:           num,
@@ -59,15 +59,17 @@ func NewStress(num, conn, anno int, ns string, duration time.Duration) *stress {
 			Namespace: ns,
 		},
 	}
+	s.initStress()
+	return s
 }
 func (s *stress) initStress() {
 	s.ConnSend = make([]int, s.Conn)
 	s.ConnRecv = make([]int, s.Conn)
 	s.ConnSendNum = make([]int, s.Conn)
-	s.clientSet = client.ClientSet(s.Conn)
+	s.clientSet = client.ClientSetWithReuse(s.Conn)
 
 }
-func (s *stress) Run() {
+func (s *stress) Run(ctx context.Context) {
 	start := time.Now()
 	s.run()
 	ioinfo.WriteInfo(start, s)
@@ -95,7 +97,7 @@ func (s *stress) start(ctx context.Context, wg *sync.WaitGroup, num, id int, res
 }
 
 func (s *stress) run() {
-	s.initStress()
+	
 	// defer client.PutClientSet(s.clientSet)
 	list := s.getResList()
 	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(s.Duration))

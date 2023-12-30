@@ -1,0 +1,27 @@
+2023-12-28 10:56:50.438332036 +0000 UTC m=+7767.104038961
+Running 1m0s myx-test @ https://192.168.12.127:6443/apis/batch/v1/namespaces/myx-test/jobs
+3 connections
+Requests/bytes (per Connection):  [916012 888086 871978]
+Response/bytes (per Connection):  [5289964 5140693 5034359]
+Requests Number (per Connection):  [853 827 812]
+Requests/sec:  43.55592447916667 KB
+Transfer/sec:  295.2651692708333 KB
+
+2023-12-28 10:57:58.680016478 +0000 UTC m=+7835.345723371
+Running 8.187411192s myx-test @ https://192.168.12.127:6443/apis/batch/v1/namespaces/myx-test/jobs
+3 connections
+Requests/bytes (per Connection):  [916012 888088 871978]
+Response/bytes (per Connection):  [648060 634304 616900]
+Requests Number (per Connection):  [853 827 812]
+Requests/sec:  319.1921549547355 KB
+Transfer/sec:  545.7289632943844 KB
+
+2023-12-28 11:06:59.07666467 +0000 UTC m=+7657.616866319
+Running 1m27.804904624s myx-test @ https://192.168.12.127:6443/apis/batch/v1/namespaces/myx-test/jobs
+3 connections
+Requests/bytes (per Connection):  [740950 725914 745246]
+Response/bytes (per Connection):  [2292615 2156878 2241265]
+Requests Number (per Connection):  [690 676 694]
+Requests/sec:  24.60299548329021 KB
+Transfer/sec:  99.01732788709828 KB
+

@@ -2,76 +2,80 @@ package client
 
 import (
 	"crypto/tls"
+	"log"
 	"net/http"
 	"sync"
 )
 
 var (
-	shortConnPool = sync.Pool{
-		New: func() any {
-			return &http.Client{
-				Transport: &http.Transport{
-					TLSClientConfig:   &tls.Config{InsecureSkipVerify: true},
-					DisableKeepAlives: true,
-				},
-			}
-		},
-	}
-	longConnPool = sync.Pool{
-		New: func() any {
-			return &http.Client{
-				Transport: &http.Transport{
-					TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-				},
-			}
-		},
-	}
+	shortConn []*http.Client
+	longConn  []*http.Client
+	used      = 0
+	lock      = sync.Mutex{}
 )
 
-func ClientSet(num int) []*http.Client {
-	httpClientSet := make([]*http.Client, num)
+func init() {
+	shortConn = make([]*http.Client, 0)
+	longConn = make([]*http.Client, 0)
+}
+func ClientSetWithReuse(num int) []*http.Client {
+	if num < 0 {
+		panic("conn num is less than 0")
+	}
+	if num > len(longConn) {
+		for i := len(longConn); i < num; i++ {
+			longConn = append(longConn, GetClientWithoutReuse(false))
+		}
+	}
+	return longConn[:num]
+}
+func ClientSetWithOutReuse(num int) []*http.Client {
+	if num < 0 {
+		panic("conn num is less than 0")
+	}
+	res := make([]*http.Client, num)
 	for i := 0; i < num; i++ {
-		httpClientSet[i] = GetClient()
+		res[i] = GetClientWithoutReuse(false)
 	}
-	return httpClientSet
+	return res
 }
-func PutClientSet(set []*http.Client) {
-	for i := 0; i < len(set); i++ {
-		PutClient(set[i])
+func ShortClientSetWithReuse(num int) []*http.Client {
+	if num < 0 {
+		panic("conn num is less than 0")
 	}
+	if num > len(shortConn) {
+		for i := len(shortConn); i < num; i++ {
+			shortConn = append(shortConn, GetClientWithoutReuse(true))
+		}
+	}
+	return shortConn[:num]
 }
-func ClientSetShort(num int) []*http.Client {
-	httpClientSet := make([]*http.Client, num)
+func ShortClientSetWithoutReuse(num int) []*http.Client {
+	if num < 0 {
+		panic("conn num is less than 0")
+	}
+	res := make([]*http.Client, num)
 	for i := 0; i < num; i++ {
-		httpClientSet[i] = GetShortClient()
+		res[i] = GetClientWithoutReuse(true)
 	}
-	return httpClientSet
+	return res
 }
-func PutClientSetShort(set []*http.Client) {
-	for i := 0; i < len(set); i++ {
-		PutShortClient(set[i])
+
+func GetClientWithoutReuse(short bool) *http.Client {
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
-}
-func GetShortClient() *http.Client {
+	if short {
+		tr.DisableKeepAlives = true
+	}
 	return &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig:   &tls.Config{InsecureSkipVerify: true},
-			DisableKeepAlives: true,
-		},
+		Transport: tr,
 	}
-	// return shortConnPool.Get().(*http.Client)
 }
-func PutShortClient(client *http.Client) {
-	shortConnPool.Put(client)
-}
-func GetClient() *http.Client {
-	return &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		},
-	}
-	// return longConnPool.Get().(*http.Client)
-}
-func PutClient(client *http.Client) {
-	longConnPool.Put(client)
+func GetClientWithReuse() *http.Client {
+	lock.Lock()
+	defer lock.Unlock()
+	used++
+	log.Println("return client seq is ", used-1)
+	return ClientSetWithReuse(used)[used-1]
 }
