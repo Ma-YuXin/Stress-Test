@@ -1,0 +1,9 @@
+2024-01-02 04:54:26.444343915 +0000 UTC m=+417304.984545195
+Running 1m0s myx-test @ https://192.168.12.127:6443/api/v1/persistentvolumes
+3 connections
+Requests/bytes (per Connection):  [5130736 5309719 5241535]
+Response/bytes (per Connection):  [7452048 7712007 7612975]
+Requests Number (per Connection):  [602 623 615]
+Requests/sec:  255.24072265625 KB
+Transfer/sec:  625.9606119791666 KB
+

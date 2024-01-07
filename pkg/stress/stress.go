@@ -29,9 +29,10 @@ var (
 		"LIST":   List,
 	}
 	Resindex     map[string][]string
-	singleResNum = 10
+	SingleResNum int
 	Rescounter   map[string]int
 	usedres      map[string]empty
+	RpsBase      int
 )
 
 func init() {
@@ -80,12 +81,12 @@ func RpsWithPercent(resRatio map[string]map[string]int, duration time.Duration) 
 				log.Println("programmer stop")
 				return
 			default:
-				if rps==0{
+				if rps == 0 {
 					continue
 				}
 				wg.Add(1)
-				log.Println("start goroutine in : ", action, res, rps, " ticker time is ", time.Second/time.Duration(rps))
-				go funcs[action](wg, ctx, res, rps)
+				log.Println("start goroutine in : ", action, res, rps*RpsBase, " ticker time is ", time.Second/time.Duration(rps*RpsBase))
+				go funcs[action](wg, ctx, res, rps*RpsBase)
 			}
 		}
 	}
@@ -111,13 +112,13 @@ func prepareRes(sigs chan os.Signal, resRatio map[string]map[string]int) error {
 					clear()
 					return errors.New("receive interupt when create res")
 				default:
-					if len(list) > singleResNum {
+					if len(list) > SingleResNum {
 						log.Println("res ,", res, "num is sufficient num is : ", len(list))
 						Rescounter[res] = len(list)
 					} else {
-						log.Println("creating res ", res, " num : ", singleResNum-len(list))
-						create.CreateRes(config.GetDefultNameSpace(), res, singleResNum-len(list))
-						log.Println("creating res ", res, " num : ", singleResNum-len(list), " complete ")
+						log.Println("creating res ", res, " num : ", SingleResNum-len(list))
+						create.CreateRes(config.GetDefultNameSpace(), res, SingleResNum-len(list))
+						log.Println("creating res ", res, " num : ", SingleResNum-len(list), " complete ")
 						Rescounter[res] = 200
 					}
 				}

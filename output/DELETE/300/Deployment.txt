@@ -1,0 +1,9 @@
+2024-01-02 04:25:33.684099696 +0000 UTC m=+415572.224300974
+Running 51.427107075s myx-test @ https://192.168.12.127:6443/apis/apps/v1/namespaces/myx-test/deployments
+3 connections
+Requests/bytes (per Connection):  [619480 624915 617306]
+Response/bytes (per Connection):  [311110 313840 310018]
+Requests Number (per Connection):  [570 575 568]
+Requests/sec:  35.35231682702035 KB
+Transfer/sec:  53.1066635019835 KB
+

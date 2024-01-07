@@ -1,0 +1,9 @@
+2024-01-02 05:03:59.584365182 +0000 UTC m=+417878.124566460
+Running 29.026003619s myx-test @ https://192.168.12.127:6443/api/v1/namespaces/myx-test/configmaps
+3 connections
+Requests/bytes (per Connection):  [737926 763822 741163]
+Response/bytes (per Connection):  [361726 374422 363313]
+Requests Number (per Connection):  [684 708 687]
+Requests/sec:  75.4613966906465 KB
+Transfer/sec:  112.45210326210426 KB
+

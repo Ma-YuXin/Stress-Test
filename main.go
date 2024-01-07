@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -15,6 +16,24 @@ import (
 	"syscall"
 	"time"
 )
+
+var (
+	duration = time.Minute
+)
+
+func init() {
+	rps := flag.Int("rps", 1, "the Base of rps")
+	resnum := flag.Int("resnum", 10, "the num of res prepare for action such as : put patch and so on")
+	period := flag.Duration("duration", time.Minute, "test duration time")
+	// verbose := flag.Bool("verbose", true, "add more exclamations")
+	flag.Parse()
+	stress.SingleResNum = *resnum
+	stress.RpsBase = *rps
+	duration = *period
+	log.Println("the base of rps is ", *rps)
+	log.Println("the num of res is ", *resnum)
+	log.Println("duration is ", *period)
+}
 
 // kubectl delete -n myx-test -l env=test no
 // kubectl delete -n myx-test -l env=test pv
@@ -76,14 +95,14 @@ func rps() {
 	// "cj" :2,
 	// "job":2
 	resRatio := map[string]map[string]int{
-		"POST":   {"podtemplate": 2, "ns": 2, "no": 2, "pv": 2, "cm": 2, "ep": 2, "limits": 2, "pvc": 2, "rc": 2, "quota": 2, "secret": 2, "sa": 2, "svc": 2, "ds": 2, "deploy": 2, "rs": 2, "sts": 2, "cj": 2, "job": 2},
-		"PATCH":  {"podtemplate": 2, "ns": 2, "no": 2, "pv": 2, "cm": 2, "ep": 2, "limits": 2, "pvc": 2, "rc": 2, "quota": 2, "secret": 2, "sa": 2, "svc": 2, "ds": 2, "deploy": 2, "rs": 2, "sts": 2, "cj": 2, "job": 2},
-		"PUT":    {"podtemplate": 2, "ns": 2, "pv": 2, "cm": 2, "ep": 2, "limits": 2, "pvc": 2, "rc": 2, "quota": 2, "secret": 2, "sa": 2, "svc": 2, "ds": 2, "deploy": 2, "rs": 2, "sts": 2, "cj": 2, },
-		"GET":    {"podtemplate": 2, "ns": 2, "no": 2, "pv": 2, "cm": 2, "ep": 2, "limits": 2, "pvc": 2, "rc": 2, "quota": 2, "secret": 2, "sa": 2, "svc": 2, "ds": 2, "deploy": 2, "rs": 2, "sts": 2, "cj": 2, "job": 2},
-		"LIST":   {"podtemplate": 2, "ns": 2, "no": 2, "pv": 2, "cm": 2, "ep": 2, "limits": 2, "pvc": 2, "rc": 2, "quota": 2, "secret": 2, "sa": 2, "svc": 2, "ds": 2, "deploy": 2, "rs": 2, "sts": 2, "cj": 2, "job": 2},
-		"DELETE": {"pv": 1, "ns": 1, "no": 1, "limits": 1, "pvc": 1, "podtemplate": 1, "rc": 1, "secret": 1, "deploy": 4},
+		"POST":   {"podtemplate": 2, "ns": 2, "pv": 2, "cm": 2, "ep": 2, "limits": 2, "pvc": 2, "rc": 2, "quota": 2, "secret": 2, "sa": 2, "svc": 2, "ds": 2, "deploy": 2, "rs": 2, "sts": 2, "cj": 2, "job": 2},
+		"PATCH":  {"podtemplate": 2, "ns": 2, "pv": 2, "cm": 2, "ep": 2, "limits": 2, "pvc": 2, "rc": 2, "quota": 2, "secret": 2, "sa": 2, "svc": 2, "ds": 2, "deploy": 2, "rs": 2, "sts": 2, "cj": 2, "job": 2},
+		"PUT":    {"podtemplate": 2, "ns": 2, "pv": 2, "cm": 2, "ep": 2, "limits": 2, "pvc": 2, "rc": 2, "quota": 2, "secret": 2, "sa": 2, "svc": 2, "ds": 2, "deploy": 2, "rs": 2, "sts": 2, "cj": 2},
+		"GET":    {"podtemplate": 2, "ns": 2, "pv": 2, "cm": 2, "ep": 2, "limits": 2, "pvc": 2, "rc": 2, "quota": 2, "secret": 2, "sa": 2, "svc": 2, "ds": 2, "deploy": 2, "rs": 2, "sts": 2, "cj": 2, "job": 2},
+		"LIST":   {"podtemplate": 2, "ns": 2, "pv": 2, "cm": 2, "ep": 2, "limits": 2, "pvc": 2, "rc": 2, "quota": 2, "secret": 2, "sa": 2, "svc": 2, "ds": 2, "deploy": 2, "rs": 2, "sts": 2, "cj": 2, "job": 2},
+		"DELETE": {"pv": 1, "ns": 1, "limits": 1, "pvc": 1, "podtemplate": 1, "rc": 1, "secret": 1, "deploy": 1},
 	}
-	stress.RpsWithPercent(resRatio, time.Second*10)
+	stress.RpsWithPercent(resRatio, duration)
 }
 func postRps() {
 

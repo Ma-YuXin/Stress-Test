@@ -1,0 +1,9 @@
+2024-01-02 04:17:42.168946651 +0000 UTC m=+415100.709147954
+Running 30.450591154s myx-test @ https://192.168.12.127:6443/apis/apps/v1/namespaces/myx-test/daemonsets
+3 connections
+Requests/bytes (per Connection):  [749625 761560 736605]
+Response/bytes (per Connection):  [375794 381778 369266]
+Requests Number (per Connection):  [691 702 679]
+Requests/sec:  72.08751418892076 KB
+Transfer/sec:  108.22565445719097 KB
+
